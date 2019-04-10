@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}NWTK{% endblock %}
+{% block head %}
+    <style>
+        p.desc {
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+    </style>
+    <style>
+        .addressliste ul{
+            margin-top: 0;
+            list-style-type: none;
+        }
+        .addressliste h4{
+            margin-top: 2px;
+            margin-bottom: 5px;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div style="margin-top: 10px;">
+    <h2 style="padding-left: 35%">Adresslistengenerator</h2>
+        <div id="info" style="float: right;margin-right: 7px;padding: 5px;border: 1px solid #222222; width: 260px">
+            <p class="desc">Generiert eine Adressliste im format</p>
+            <p class="desc" style="margin-left: 1em">x.x.x.x /snm</p>
+            <p class="desc" style="margin-left: 1em; flex-wrap: wrap">Unterstützte operationen: <br/>
+                <b>{{ calc_needles|join("</b>, <b>")|safe }}</b></p><br/>
+            <p class="desc">Server Names: mit GW-Adr bündig</p>
+            <p class="desc">Client Names: mit BC-Adr bündig</p>
+            <br/>
+            <p class="desc">Reservierte Phrasen:</p>
+            <ul style="margin-top: 5px">
+                <li><b>[DHCP]</b><i>count</i></li>
+                <li><b>[Interval]</b><i>count</i></li>
+                <li><b>[AUTO]</b><i>name</i>,<i>count</i></li>
+            </ul>
+        </div>
+        <div class="center" style="width: 50%;">
+            <form method="post"
+                  style="margin-top: 10px; margin-left: 10px" autocomplete="off">
+                <table>
+                    <tbody>
+                    <tr>
+                        <td><label for="firstByte">Erstes Byte:</label></td>
+                        <td>
+                            <input type="text" name="firstByte" id="firstByte"
+                                   value="{{ request.form["firstByte"] }}"
+                                   required/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label for="secondByte">Zweites Byte:</label></td>
+                        <td>
+                            <input type="text" name="secondByte" id="secondByte"
+                                   value="{{ request.form["secondByte"] }}"
+                                   required/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label for="thirdByte">Drittes Byte:</label></td>
+                        <td>
+                            <input type="text" name="thirdByte" id="thirdByte"
+                                   value="{{ request.form["thirdByte"] }}"
+                                   required/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label for="fourthByte">Viertes Byte:</label></td>
+                        <td>
+                            <input type="text" name="fourthByte" id="fourthByte"
+                                   value="{{ request.form["fourthByte"] }}"
+                                   required/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label for="snm">SNM:</label></td>
+                        <td>
+                            <input type="number" name="snm" id="snm" min="8" max="31"
+                                   value="{{ request.form["snm"] }}" required/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Server Names:</td>
+                        <td>
+                            <label>
+                                <textarea name="sName">{{ request.form["sName"] }}</textarea>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Client Names:</td>
+                        <td>
+                            <label>
+                                <textarea name="cName">{{ request.form["cName"] }}</textarea>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td><input type="submit" /></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <br/>
+            </form>
+        </div>
+        <div class="center">
+            {% if out != None %}
+            <div style='float:left;margin-right: 10px;margin-left: 150px;display: inline-block;right: 50%'>
+                Adressliste kopieren: <button onclick='{document.getElementById("1").select();document.execCommand("copy");alert("Adressliste kopiert!")}'>COPY</button><br /><br />
+                <textarea id='1' rows='{{ (ta[0] + 10) }}' cols='{{ ta[1] }}' style='resize: none' readonly>{{ style|safe }}{{ out|safe }}</textarea>
+            </div>
+            <div style='float:left;margin: 10px;left: 50%;' class="addressliste"><br /><br />{{ out|safe }}</div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

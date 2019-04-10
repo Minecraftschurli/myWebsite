@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Contact{% endblock %}
+{% block head %}
+    <style>
+        /* Style inputs with type="text", select elements and textareas */
+        input[type=text], input[type=email], textarea {
+            width: 100%; /* Full width */
+            padding: 12px; /* Some padding */
+            border: 1px solid #ccc; /* Gray border */
+            border-radius: 4px; /* Rounded borders */
+            box-sizing: border-box; /* Make sure that padding and width stays in place */
+            margin-top: 6px; /* Add a top margin */
+            margin-bottom: 16px; /* Bottom margin */
+            resize: vertical; /* Allow the user to vertically resize the textarea (not horizontally) */
+            background-color: #f9f9f9;
+        }
+
+        /* Style the submit button with a specific background color etc */
+        input[type=submit] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* When moving the mouse over the submit button, add a darker green color */
+        input[type=submit]:hover {
+            background-color: #45a049;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <form action="{{ url_for('contact') }}" method="post">
+        <h2>Contact</h2>
+        {% if not loggedin %}
+            <h4><label for="fname">First Name</label></h4>
+            <input type="text" id="fname" name="firstname" placeholder="Your name.." {% if form != None %}value="{{ form['firstname'] }}"{% endif %} required/>
+
+            <h4><label for="lname">Last Name</label></h4>
+            <input type="text" id="lname" name="lastname" placeholder="Your last name.." {% if form != None %}value="{{ form['lastname'] }}"{% endif %} required/>
+
+            <h4><label for="email">Email Address</label></h4>
+            <input type="email" id="email" name="email" placeholder="Your email address.." {% if form != None %}value="{{ form['email'] }}"{% endif %} required/>
+        {% endif %}
+
+        <h4><label for="subject">Subject</label></h4>
+        <input type="text" id="subject" name="subject" placeholder="Subject.." {% if form != None %}value="{{ form['subject'] }}"{% endif %} required/>
+
+        <h4><label for="message">Message</label></h4>
+        <textarea id="message" name="message" placeholder="Write something.." style="height:200px" required>{% if form != None %}{{ form['message'] }}{% endif %}</textarea>
+
+        <input type="submit" value="Submit">
+
+    </form>
+{% endblock %}

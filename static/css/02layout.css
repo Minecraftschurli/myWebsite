@@ -1,0 +1,75 @@
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    display: flex;
+    flex-flow: column;
+    height: 100%;
+}
+
+body .navbar {
+    flex: 0 1 auto;
+}
+
+aside {
+    width: 20%;
+    position: relative;
+    overflow: hidden;
+    min-width: 0;
+}
+
+article {
+    overflow-y: scroll;
+    width: 60%;
+    position: relative;
+    float: left;
+    min-width: 700px;
+}
+
+body > footer {
+    flex: 0 1 40px;
+    background-color: #222;
+}
+
+.flexbox {
+    flex: 1 1 auto;
+    display: flex;
+    flex-flow: row;
+}
+
+.flexbox > * {
+    flex: 1 1 auto;
+}
+
+.center {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.header {
+    background-color: #4CAF50;
+    width: 100%;
+    margin: 0;
+    height: 50px;
+}
+
+.header > h1{
+    margin: 5px;
+    padding: 0 20px;
+    float: right;
+}
+
+.page {
+    display: -ms-flexbox; /* IE10 */
+    display: flex;
+    -ms-flex-wrap: wrap; /* IE10 */
+    flex-wrap: wrap;
+    height: 100%;
+}
+
+#Logout, #Login{
+    float: right;
+}

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITBoy</title>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css"
+          integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <link rel="stylesheet" href="ITBoy.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
+    <script src="ITBoy.js" rel="script" type="application/javascript"></script>
+    <script>
+        function resizeProp() {
+            resize();
+        }
+    </script>
+</head>
+<body>
+<div id="game">
+    <div id="lcBorder">
+        <div id="lc">
+            &nbsp;
+        </div>
+    </div>
+    <div id="objects">
+        <div id="character" style="z-index: 9;width: 67px;height: 54px"><img src="ITboy2.gif" alt="character" style="width: inherit;height: inherit" /></div>
+    </div>
+    <div class="bg_image" id="bgimg01"><img src="wiese.png" alt="ground"></div>
+    <div id="ground" style="height: 0;position: absolute;width: 100%"></div>
+    <!--div style="display: none">
+        <button onclick="$('#objects').toggleClass('showHitboxes');$('#ground').toggleClass('show')">Toggle Hitboxes</button>
+        <button onclick="console.log(player)">Player</button>
+        <button id="check">Check</button>
+    </div-->
+    <div id="menu">
+        <h1 style="display: block;text-align: -webkit-center;text-align: center;font-size: 100px;vert-align: middle">
+            <span id="menu_text" style="background-color: mediumaquamarine;padding: 10px;border-radius: 20px">ITBoy</span>
+            <br/>
+            <span class="menu_buttons" style="margin-bottom: 40px;">
+                <button id="restart"><i class="fas fa-redo"></i></button>
+                <button id="next"><i class="fas fa-angle-double-right"></i></button>
+                <button id="start"><i class="fas fa-play"></i></button>
+            </span>
+        </h1>
+    </div>
+</div>
+<script>setup()</script>
+</body>
+</html>

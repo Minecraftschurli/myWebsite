@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="author" content="Georg Burkl">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Game</title>
+        <link rel="stylesheet" href="game01.css">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
+        <script src="game.js"></script>
+        <script>
+            function resizeProp() {
+                for (let i = 0; i<100;i++) {
+                    setPos();
+                }
+            }
+        </script>
+    </head>
+    <body style="overflow: hidden; background-color: burlywood;height: 100%">
+        <div id="gameOver" class="obj"><h1><b>Game Over</b></h1></div>
+        <div id="highscores" class="obj">
+            <table>
+            </table>
+        </div>
+        <div id="uname" class="obj">Username: <span>guest</span></div>
+        <div id="menu" class="obj">
+            <div id="start" class="button"><h2>START</h2></div>
+            <div id="difficultyChoose" class="button"><span>Easy</span></div>
+            <div id="login" class="button">LOGIN</div>
+        </div>
+        <div id="game">
+            <div>
+                <h2 id="hs" class="obj">High Score: <span id="highscore">0</span></h2>
+                <h2 id="sc">Score: <span id="score">0</span></h2>
+                <h2 id="lives" style="color: darkred"></h2>
+                <h2 id="diff" style="visibility: hidden">Difficulty: <span id="difficulty">0</span></h2>
+            </div>
+            <div class="obj target" id="target"><img alt="target" src="target.gif"></div>
+            <div class="obj" id="crosshair"><img alt="crosshair" src="crosshair.png"></div>
+        </div>
+    </body>
+</html>

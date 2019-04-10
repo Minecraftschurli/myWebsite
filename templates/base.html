@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Minecraftschurli - {% block title %}{% endblock %}</title>
+    <link rel="icon" href="../static/data/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="../static/css/01main.css"/>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css"
+          integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <style>
+        h4 {
+            margin-bottom: 5px;
+        }
+
+        h2 {
+            font-size: 200%;
+            margin-top: 5px;
+        }
+
+        .notification {
+            padding: 20px;
+            color: white;
+            opacity: 1;
+            transition: opacity 0.6s;
+            margin-bottom: 15px;
+        }
+
+        .notification.success, .notification.success * {background-color: #4CAF50;}
+        .notification.info, .notification.info * {background-color: #2196F3;}
+        .notification.warning, .notification.warning * {background-color: #ff9800;}
+        .notification.alert, .notification.alert * {background-color: #f44336;}
+
+        .closebtn {
+            margin-left: 15px;
+            color: white;
+            font-weight: bold;
+            float: right;
+            font-size: 22px;
+            line-height: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .closebtn:hover {
+            color: black;
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+<div class="header">
+    <h1>Minecraftschurli - {{ self.title() }}</h1>
+</div>
+<nav class="navbar">
+    {% for name, href, active, external in nav %}
+        {% if href|is_list() %}
+            <div class="dropdown">
+                <button class="dropbtn">{{ name }}
+                    <i class="fa fa-caret-down"></i>
+                </button>
+                <div class="dropdown-content">
+                    {% for n, h, e in href %}
+                        <a href="{{ h|e }}" {% if e %}target="_blank"{% endif %}>{{ n|safe }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <a href="{{ href|e }}" {% if active %}class="active"{% endif %} {% if external %}target="_blank"{% endif %}
+               id="{{ name|e }}">{{ name|e }}</a>
+        {% endif %}
+    {% endfor %}
+</nav>
+<div class="flexbox">
+    <aside style="float: left">{% block aside_left %}{% endblock %}</aside>
+    <article>
+        {% for message in messages %}
+            <div class="notification {{ message['type'] }}">
+                <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                <strong>{{ message['head'] }}</strong> {{ message['text'] }}
+            </div>
+        {% endfor %}
+        {% block content %}{% endblock %}
+    </article>
+    <aside style="float: left">{% block aside_right %}{% endblock %}</aside>
+</div>
+<footer class="spaceTop">
+    {# <img alt="ECG" class="responsiv" src="imgLayout/footer01Web.gif"> #}
+</footer>
+</body>
+</html>

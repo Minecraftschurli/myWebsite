@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block head %}
+    <meta name="author" content="Georg Burkl">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/css/gamePage.css"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
+    <script type='text/javascript'>
+    $(document).ready(function () {
+        var game_frame = document.getElementById('game_frame');
+        var fsc = function (evt) {
+            game_frame.contentWindow.resizeProp()
+        };
+        /* Standard syntax */
+        game_frame.addEventListener("fullscreenchange", fsc);
+
+        /* Firefox */
+        game_frame.addEventListener("mozfullscreenchange", fsc);
+
+        /* Chrome, Safari and Opera */
+        game_frame.addEventListener("webkitfullscreenchange", fsc);
+
+        /* IE / Edge */
+        game_frame.addEventListener("msfullscreenchange", fsc);
+
+        game_frame.focus();
+    });
+    </script>
+    <style type="text/css">
+        {{ game_settings }}
+    </style>
+{% endblock %}
+{% block title %}Game {{ game_name }}{% endblock %}
+{% block content %}
+    <div class="iframe-cont">
+        <iframe id="game_frame" class="iframe" src="{{ game_src }}"></iframe>
+    </div>
+    <br/>
+    <button id="fullscreen" onclick="{document.getElementById('game_frame').requestFullscreen(); document.getElementById('game_frame').focus()}">Fullscreen</button>
+{% endblock %}

@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block head %}
+    <style>
+        .timer {
+            padding: 10px;
+            margin: 5px auto 10px;
+            width: fit-content;
+        }
+
+        .timerCont, .timer, .timer * {
+            background-color: #090;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
+    <script src="../static/data/js/Ostern.js"></script>
+{% endblock %}
+{% block title %}Countdown{% endblock %}
+{% block content %}
+    <div>
+    <div id="form">
+        <label for="use1">Until next Easter Sunday</label>
+        <input type="radio" name="use" id="use1" value="os" onchange="change();" checked/>
+        <br/>
+        <label for="use2">Until next Christmas eve</label>
+        <input type="radio" name="use" id="use2" value="weih" onchange="change();"/>
+        <br/>
+        <label for="useCustom">Until <input type="date" name="date" id="date" onchange="change()"/></label>
+        <input type="radio" name="use" id="useCustom" value="date" onchange="change();" disabled/>
+        <label for="date"></label>
+
+    </div>
+    </div>
+    <div class="timerCont">
+        <div class="timer" style="align-content: center">
+            Time until <span id="bis"></span>: <br/>
+            <div style="margin-top: 3px;width: 285px;">
+                <img class="num" id="m0" src="" alt="">
+                <img class="num" id="m1" src="" alt="">
+                <img src="../static/data/img/spacer2.png" alt="">
+                <img class="num" id="d0" src="" alt="">
+                <img class="num" id="d1" src="" alt="">
+                <img src="../static/data/img/spacer2.png" alt="">
+                <img class="num" id="h0" src="" alt="">
+                <img class="num" id="h1" src="" alt="">
+                <img src="../static/data/img/spacer2.png" alt="">
+                <img class="num" id="min0" src="" alt="">
+                <img class="num" id="min1" src="" alt="">
+                <img src="../static/data/img/spacer2.png" alt="">
+                <img class="num" id="s0" src="" alt="">
+                <img class="num" id="s1" src="" alt="">
+            </div>
+        </div>
+    </div>
+    <script>
+        let heute = new Date();
+        let to;
+        let radioValue;
+        let year;
+        let osterSonntag, weihnachten;
+        let diff;
+        let chosen;
+        let altM, altD, altH, altMin, altS;
+        let theme = 'none';
+        let oldTheme;
+
+        function change() {
+            heute = new Date();
+            radioValue = $("#form input[name='use']:checked").val();
+            year = Number(heute.getFullYear());
+            osterSonntag = new Date(OsterSonntag(year));
+            weihnachten = new Date(year,11,24);
+            let date = $("#form input[name='date']")[0];
+            let nextDay = new Date(heute.getFullYear(),heute.getMonth(),heute.getDay()+9).toISOString();
+            date.min = nextDay.substring(0,nextDay.indexOf('T'));
+            chosen = new Date(date.value);
+            while (osterSonntag.getTime() < heute.getTime()) {
+                year++;
+                osterSonntag = new Date(OsterSonntag(year));
+            }
+            document.getElementById('useCustom').disabled = (chosen.toDateString() === 'Invalid Date');
+            if (radioValue === "os") {
+                to = osterSonntag;
+                $('#bis').text('next Easter Sunday');
+                theme = 'ostern';
+            } else if (radioValue === "weih") {
+                to = weihnachten;
+                $('#bis').text('next Christmas eve');
+                theme = 'weihnachten';
+            }else if (radioValue === "date") {
+                to = chosen;
+                $('#bis').text(chosen.toLocaleDateString());
+                theme = 'none';
+            }
+        }
+        change();
+
+        function refreshCountdown() {
+            heute = new Date();
+            diff = new Date(Number(to.getTime() - heute.getTime()));
+            let mons = String(Number(to.getMonth() - heute.getMonth()));
+            if (Number(mons) < 0) {
+                mons = String(Number(mons)+12);
+            }
+            if (mons !== altM || theme !== oldTheme) {
+                document.getElementById("m0").src = "../static/data/img/"+(theme==="none"?'':theme+'/')+"zahl-" + zero(mons) + ".png";
+                document.getElementById("m1").src = "../static/data/img/"+(theme==="none"?'':theme+'/')+"zahl-" + one(mons) + ".png";
+                altM = mons;
+            }
+            let days = String(Number(diff.getDate() - 1));
+            if (days !== altD || theme !== oldTheme) {
+                document.getElementById("d0").src = "../static/data/img/"+(theme==="none"?'':theme+'/')+"zahl-" + zero(days) + ".png";
+                document.getElementById("d1").src = "../static/data/img/"+(theme==="none"?'':theme+'/')+"zahl-" + one(days) + ".png";
+                altD = days;
+            }
+            let hrs = String(Number(diff.getHours() - 2));
+            if (hrs !== altH || theme !== oldTheme) {
+                document.getElementById("h0").src = "../static/data/img/"+(theme==="none"?'':theme+'/')+"zahl-" + zero(hrs) + ".png";
+                document.getElementById("h1").src = "../static/data/img/"+(theme==="none"?'':theme+'/')+"zahl-" + one(hrs) + ".png";
+                altH = hrs;
+            }
+            let mins = String(Number(diff.getMinutes()));
+            if (mins !== altMin || theme !== oldTheme) {
+                document.getElementById("min0").src = "../static/data/img/"+(theme==="none"?'':theme+'/')+"zahl-" + zero(mins) + ".png";
+                document.getElementById("min1").src = "../static/data/img/"+(theme==="none"?'':theme+'/')+"zahl-" + one(mins) + ".png";
+                altMin = mins;
+            }
+            let secs = String(Number(diff.getSeconds()));
+            if (secs !== altH || theme !== oldTheme) {
+                document.getElementById("s0").src = "../static/data/img/"+(theme==="none"?'':theme+'/')+"zahl-" + zero(secs) + ".png";
+                document.getElementById("s1").src = "../static/data/img/"+(theme==="none"?'':theme+'/')+"zahl-" + one(secs) + ".png";
+                altS = secs;
+            }
+            oldTheme = theme;
+        }
+
+        //window.requestAnimationFrame(refreshCountdown);
+        cd = setInterval(refreshCountdown, 200);
+
+        function zero(s) {
+            s = String(s);
+            if (s.length > 1) {
+                return s.substring(0, 1);
+            } else {
+                return 0;
+            }
+        }
+
+        function one(s) {
+            s = String(s);
+            if (s.length > 1) {
+                return s.substring(1, 2);
+            } else {
+                return s.substring(0, 1);
+            }
+        }
+    </script>
+{% endblock %}

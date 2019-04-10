@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Cam{% endblock %}
+{#{% block head %}
+<script src="http://code.jquery.com/jquery-latest.js"></script>
+    <style type="text/css">
+    #alert{
+        border-radius: 5px;
+        border: 4px #222222;
+        background-color: crimson;
+        color: #222222;
+        width: 85px;
+        padding: 5px;
+        font-size: 200%;
+        font-weight: bold;
+    }
+    .hidden{
+        display: none;
+    }
+    </style>
+{% endblock %}#}
+{% block content %}
+    <h1>Video Streaming</h1>
+    <img src="{{ url_for('video_feed', cam_id=0) }}" alt="camera feed">
+{#    <object data="{{ url_for('people_feed', cam_id=0) }}" type="text/plain"></object>#}
+{% endblock %}

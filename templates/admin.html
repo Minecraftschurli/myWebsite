@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Admin{% endblock %}
+{% block head %}
+    <style>
+        .user_list {
+            border-collapse: collapse;
+            border-spacing: 0;
+            width: 100%;
+            border: 1px solid #ddd;
+        }
+
+        .user_list th, .user_list td {
+            text-align: left;
+            padding: 8px;
+        }
+
+        .user_list tr:hover[onclick] {
+            cursor: pointer;
+        }
+
+        .user_list tr:nth-child(odd), .user_list tr:nth-child(odd) * {
+            background-color: #a3a3a3
+        }
+
+        .user_list tr:nth-child(even), .user_list tr:nth-child(even) * {
+            background-color: #f2f2f2
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div>
+        <div style="float: right;margin-left: 20px">
+            <table>
+                <tbody>
+                <tr>
+                    <td>
+                        <form action="{{ url_for('admin', command='reload_user') }}" method="post">
+                            <button type="submit" style="float: right">Reload User</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <form action="{{ url_for('admin', command='reload_config') }}" method="post">
+                            <button type="submit" style="float: right">Reload Config</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <form action="{{ url_for('admin', command='toggle_camera') }}" method="post">
+                            <button type="submit" style="float: right">
+                                Turn Camera {% if config['camera'] %}OFF{% else %}ON{% endif %}
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <a href="{{ url_for('itboy') }}">ITBoy</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div style="overflow-y:auto;">
+            <table class="user_list">
+                <tbody>
+                <tr>
+                    <th>User</th>
+                    <th>Permissions</th>
+                    <th></th>
+                </tr>
+                {% for _, user in users %}
+                    <tr style="height: 30px" {% if user.username != "admin" %}onclick="
+                            document.getElementById('username').value = '{{ user.username }}';
+                            document.getElementById('uname').innerText = '{{ user.username }}';
+                            document.getElementById('permissions').value = '{{ user.permissions|join(', ') }}';
+                            document.getElementById('popup').style.display = 'block';"{% endif %}>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.permissions }}</td>
+                        <td style="padding: 0;">{% if user.username != "admin" %}
+                            <a style="text-decoration: none; font-size: 100%; text-align: right; color: red;" href="{{ url_for('admin', command='remove_user', param=(user.username|string)) }}"><i class="fas fa-trash-alt"></i></a>
+                        {% endif %}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div id="popup" class="modal">
+        <!-- Modal content -->
+        <div class="modal-content" style="width: 25%; height: 25%">
+            <div class="modal-header">
+                <span class="close" onclick="document.getElementById('popup').style.display = 'none';">&times;</span>
+            </div>
+            <div class="modal-body" style="margin: 0 auto;height: 100%">
+                <form action="{{ url_for('admin', command='edit_user_permissions') }}" method="post" id="add_user">
+                    <p>
+                        <label for="username">Username: <span id="uname"></span></label><br/>
+                        <input id="username" type="text" name="username" pb-role="none" hidden/>
+                    </p>
+                    <p>
+                        <label for="permissions">Permissions:</label><br/>
+                        <textarea id="permissions" name="permissions" style="width: available; width: -webkit-fill-available; height: 115px"></textarea>
+                    </p>
+                    <button type="submit">EDIT</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

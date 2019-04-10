@@ -1,0 +1,74 @@
+body {
+    cursor: none;
+    overflow: hidden;
+}
+
+.obj {
+    position: absolute;
+    background-color: transparent;
+}
+
+.target {
+    visibility: hidden;
+    z-index: -1;
+}
+
+#crosshair {
+    z-index: 2;
+}
+
+#menu {
+    top: 30%;
+    left: 30%;
+}
+
+#start {
+    background-color: aqua;
+}
+
+#difficultyChoose {
+    background-color: aquamarine;
+    font-size: 110%;
+    text-transform: uppercase;
+}
+
+#gameOver h1 {
+    text-align: center;
+    font-size: 45px;
+}
+
+#gameOver {
+    visibility: hidden;
+}
+
+#highscores td {
+    text-align: center;
+}
+
+#hs {
+    margin-top: 0;
+}
+
+#highscores table {
+    font-size: 110%;
+}
+
+#login {
+    background-color: tomato;
+    font-size: 120%;
+}
+
+.button {
+    float: left;
+    margin-left: 20px;
+    padding: 5px;
+    width: 110px;
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-weight: bold;
+    border-radius: 110px;
+    font-family: "Times New Roman", serif;
+}

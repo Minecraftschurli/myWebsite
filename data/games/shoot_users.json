@@ -1,0 +1,62 @@
+{
+  "users": [
+    {
+      "linked_user": "admin",
+      "impossible": 30,
+      "medium": 0,
+      "easy": 32,
+      "username": "admin",
+      "hard": 0
+    },
+    {
+      "linked_user": "Gumba",
+      "impossible": 0,
+      "medium": 0,
+      "easy": 52,
+      "username": "Gumba",
+      "hard": 0
+    }
+  ],
+  "difficulties": {
+    "impossible": [
+      [
+        "admin",
+        "30"
+      ],
+      [
+        "Gumba",
+        0
+      ]
+    ],
+    "medium": [
+      [
+        "admin",
+        0
+      ],
+      [
+        "Gumba",
+        0
+      ]
+    ],
+    "easy": [
+      [
+        "Gumba",
+        "52"
+      ],
+      [
+        "admin",
+        "32"
+      ]
+    ],
+    "hard": [
+      [
+        "admin",
+        0
+      ],
+      [
+        "Gumba",
+        0
+      ]
+    ]
+  }
+}
