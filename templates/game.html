@@ -31,9 +31,11 @@
 {% endblock %}
 {% block title %}Game {{ game_name }}{% endblock %}
 {% block content %}
+    <article>
     <div class="iframe-cont">
         <iframe id="game_frame" class="iframe" src="{{ game_src }}"></iframe>
     </div>
     <br/>
     <button id="fullscreen" onclick="{document.getElementById('game_frame').requestFullscreen(); document.getElementById('game_frame').focus()}">Fullscreen</button>
+    </article>
 {% endblock %}

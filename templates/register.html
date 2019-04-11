@@ -32,6 +32,7 @@
 </style>
 {% endblock %}
 {% block content %}
+    <article>
     <form method="post">
         <div class="container">
             <h1>{{ self.title() }}</h1>
@@ -65,4 +66,5 @@
             <p>Already have an account? <a href="{{ url_for("login") }}">Sign in</a>.</p>
         </div>
     </form>
+    </article>
 {% endblock %}

@@ -16,7 +16,7 @@
 {% endblock %}
 {% block title %}Countdown{% endblock %}
 {% block content %}
-    <div>
+    <article>
     <div id="form">
         <label for="use1">Until next Easter Sunday</label>
         <input type="radio" name="use" id="use1" value="os" onchange="change();" checked/>
@@ -27,8 +27,6 @@
         <label for="useCustom">Until <input type="date" name="date" id="date" onchange="change()"/></label>
         <input type="radio" name="use" id="useCustom" value="date" onchange="change();" disabled/>
         <label for="date"></label>
-
-    </div>
     </div>
     <div class="timerCont">
         <div class="timer" style="align-content: center">
@@ -51,6 +49,7 @@
             </div>
         </div>
     </div>
+    </article>
     <script>
         let heute = new Date();
         let to;

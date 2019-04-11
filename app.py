@@ -2,6 +2,7 @@ from datetime import datetime
 import json
 import requests
 from flask import *
+from flask_bcrypt import Bcrypt
 
 import libs.adresslistenGenerator as aG
 from libs.ShootItData import ShootItData
@@ -29,6 +30,7 @@ if configs['meinheld']:
     import meinheld
 
 app = Flask(__name__)
+bcrypt = Bcrypt(app)
 
 app.secret_key = bytes(configs['secret_key'], 'UTF-8')
 
@@ -48,7 +50,7 @@ nav = [("Home", "/", "any", False),
            ("TGM - Projektserver", "/webspace", "nwtk", True)
        ], "any", False),
        ("Contact", "/contact", "any", False),
-       ("Cam", "/cam", "camera", False),
+       # ("Cam", "/cam", "camera", False),
        ("Admin", "/admin", "all", False)]
 
 routes = [""]
@@ -203,7 +205,7 @@ def itboy():
     return render_with_nav('game', game_name='ITBoy', game_src='../static/games/itboy/ITBoy.html',
                            game_settings=
                            "aside {width: 100%;position: relative;overflow: hidden;max-width: 100%;}"
-                           "article {overflow-y: scroll;width: 1027px;min-width: 1027px;position: relative;padding: 10px}"
+                           "main {overflow-y: scroll;width: 1027px;min-width: 1027px;position: relative;padding: 10px}"
                            "#fullscreen {display: none;}"
                            ".iframe-cont iframe {border: inset 2px;height: 99.5%;width: 99%;resize: none;}"
                            ".iframe-cont {resize: none;padding-bottom: 4px;}")
@@ -416,7 +418,7 @@ def has_user_permission(permission, user):
 
 def valid_login(name, password):
     if name in users:
-        return users[name].password == password
+        return bcrypt.check_password_hash(users[name].password.encode('utf-8'), password)
     return False
 
 
@@ -426,7 +428,8 @@ def add_user(fname, lname, name, password, email, permissions=None):
     if name not in users:
         if email == (name + '@student.tgm.ac.at') and not ('nwtk' in permissions):
             permissions.append('nwtk')
-        users[name] = User(fname, lname, name, password, email, permissions)
+        users[name] = User(fname, lname, name, bcrypt.generate_password_hash(password).decode('utf-8'), email,
+                           permissions)
         return True
     else:
         return False
@@ -476,4 +479,4 @@ if __name__ == '__main__':
         meinheld.listen(('0.0.0.0', 80))
         meinheld.run(app)
     else:
-        app.run('0.0.0.0', 80, False, threaded=True)
+        app.run(None, 80, False, threaded=True)

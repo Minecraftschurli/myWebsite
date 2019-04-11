@@ -2,49 +2,48 @@
 {% block title %}Superheroes X{% endblock %}
 {% block head %}
     <style>
-    ul {
-        margin: 0;
-        list-style: none;
-        padding-left: 20px;
-    }
+        ul {
+            margin: 0;
+            list-style: none;
+            padding-left: 20px;
+        }
 
-    .download *{
-        background-color: #4CAF50;
-    }
+        .download * {
+            background-color: #4CAF50;
+        }
 
-    .download {
-        border-radius: 10px;
-        border: 2px solid #222222;
-        padding: 3px 5px;
-        background-color: #4CAF50;
-        text-decoration-line: none;
-        color: #222222;
-        font-weight: bold;
-        font-size: 14px;
-    }
+        .download {
+            border-radius: 10px;
+            border: 2px solid #222222;
+            padding: 3px 5px;
+            background-color: #4CAF50;
+            text-decoration-line: none;
+            color: #222222;
+            font-weight: bold;
+            font-size: 14px;
+        }
 
-    .info td:nth-child(2){
-        width: 5%;
-    }
+        .info td:nth-child(2) {
+            width: 5%;
+        }
 
-    .info tr td:nth-child(3){
-        text-align: right;
-    }
+        .info tr td:nth-child(3) {
+            text-align: right;
+        }
 
-    .info_box > *, .info_box table * {
-        background-color: #999999;
-    }
+        .info_box > *, .info_box table * {
+            background-color: #999999;
+        }
 
-    .info_box {
-        background-color: #999999;
-        float: left;
-        margin-bottom: 20px;
-        border-style: solid;
-        padding: 0 8px;
-        border-radius: 6px;
-        {#width: 90%;#}
-        min-width: 250px
-    }
+        .info_box {
+            background-color: #999999;
+            float: left;
+            margin-bottom: 20px;
+            border-style: solid;
+            padding: 0 8px;
+            border-radius: 6px;
+        {#width: 90%;#} min-width: 250px
+        }
     </style>
 {% endblock %}
 {% block content %}
@@ -52,17 +51,36 @@
         <div class="info_box">
             <h3 style="margin-top: 7px">CurseForge Info</h3>
             <table class="info">
-                <tr><td>Project ID:</td><td></td><td>{{ info['id'] }}</td></tr>
-                <tr><td>Created:</td><td></td><td>{{ info['created_at'] }}</td></tr>
-                <tr><td>Last Released File:</td><td></td><td>{{ info['download']['uploaded_at']['date'] }}</td></tr>
-                <tr><td>Downloads:</td><td></td><td>{{ '{:,}'.format(info['downloads']['total']) }}</td></tr>
+                <tr>
+                    <td>Project ID:</td>
+                    <td></td>
+                    <td>{{ info['id'] }}</td>
+                </tr>
+                <tr>
+                    <td>Created:</td>
+                    <td></td>
+                    <td>{{ info['created_at'] }}</td>
+                </tr>
+                <tr>
+                    <td>Last Released File:</td>
+                    <td></td>
+                    <td>{{ info['download']['uploaded_at']['date'] }}</td>
+                </tr>
+                <tr>
+                    <td>Downloads:</td>
+                    <td></td>
+                    <td>{{ '{:,}'.format(info['downloads']['total']) }}</td>
+                </tr>
             </table>
-            <p><a href="https://minecraft.curseforge.com/projects/superheroes-x/files/latest" class="download">Download Latest <i class="fas fa-download"></i></a></p>
+            <p><a href="https://minecraft.curseforge.com/projects/superheroes-x/files/latest" class="download">Download
+                Latest <i class="fas fa-download"></i></a></p>
         </div>
     </div>
+    <article>
+        <h2>Superheroes X</h2>
+        {{ info["description"]|safe }}
+    </article>
 
-    <h2>Superheroes X</h2>
-    {{ info["description"]|safe }}
 
     {#<h4 style="color: red;">WARNING:</h4>
     <ul>
@@ -118,5 +136,6 @@
     or join us on <a target="_blank" href="https://discord.gg/JYxGe7">Discord</a>#}
 {% endblock %}
 {% block aside_right %}
-<iframe src="https://discordapp.com/widget?id=445879659784044555&theme=dark" height="700" width="300" style="border: none; {#width: 95%;#} min-width: 320px"></iframe>
+    <iframe src="https://discordapp.com/widget?id=445879659784044555&theme=dark" height="700" width="300"
+            style="border: none; {#width: 95%;#} min-width: 320px"></iframe>
 {% endblock %}

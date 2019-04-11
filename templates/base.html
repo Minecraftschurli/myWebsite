@@ -72,7 +72,7 @@
 </nav>
 <div class="flexbox">
     <aside style="float: left">{% block aside_left %}{% endblock %}</aside>
-    <article>
+    <main>
         {% for message in messages %}
             <div class="notification {{ message['type'] }}">
                 <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
@@ -80,7 +80,7 @@
             </div>
         {% endfor %}
         {% block content %}{% endblock %}
-    </article>
+    </main>
     <aside style="float: left">{% block aside_right %}{% endblock %}</aside>
 </div>
 <footer class="spaceTop">

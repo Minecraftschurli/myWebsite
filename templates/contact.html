@@ -32,6 +32,7 @@
     </style>
 {% endblock %}
 {% block content %}
+    <article>
     <form action="{{ url_for('contact') }}" method="post">
         <h2>Contact</h2>
         {% if not loggedin %}
@@ -50,8 +51,7 @@
 
         <h4><label for="message">Message</label></h4>
         <textarea id="message" name="message" placeholder="Write something.." style="height:200px" required>{% if form != None %}{{ form['message'] }}{% endif %}</textarea>
-
         <input type="submit" value="Submit">
-
     </form>
+    </article>
 {% endblock %}

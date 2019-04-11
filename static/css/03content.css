@@ -2,7 +2,7 @@ body {
     background-color: #5F5F5F;
 }
 
-article {
+main {
     font-family: monospace;
     max-width: 800px !important;
     padding: 20px;
@@ -11,7 +11,7 @@ article {
     background-color: #CCCCCC;
 }
 
-article * {
+main * {
     background-color: #CCCCCC;
 }
 
