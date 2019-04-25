@@ -51,25 +51,37 @@
     </div>
     </article>
     <script>
-        let heute = new Date();
+        let heute;
         let to;
         let radioValue;
         let year;
-        let osterSonntag, weihnachten;
+        let osterSonntag;
+        let weihnachten;
         let diff;
         let chosen;
-        let altM, altD, altH, altMin, altS;
-        let theme = 'none';
+        let altM;
+        let altD;
+        let altH;
+        let altMin;
+        let altS;
+        let theme;
         let oldTheme;
+        let cd;
+        $(document).ready(function () {
+            clearInterval(cd);
+            theme = 'none';
+            change();
+            cd = setInterval(refreshCountdown, 200);
+        });
 
         function change() {
-            heute = new Date();
+            heute = new Date(Date.now());
             radioValue = $("#form input[name='use']:checked").val();
             year = Number(heute.getFullYear());
             osterSonntag = new Date(OsterSonntag(year));
             weihnachten = new Date(year,11,24);
             let date = $("#form input[name='date']")[0];
-            let nextDay = new Date(heute.getFullYear(),heute.getMonth(),heute.getDay()+9).toISOString();
+            let nextDay = new Date(heute.getFullYear(),heute.getMonth(),heute.getDate()+2).toISOString();
             date.min = nextDay.substring(0,nextDay.indexOf('T'));
             chosen = new Date(date.value);
             while (osterSonntag.getTime() < heute.getTime()) {
@@ -91,12 +103,11 @@
                 theme = 'none';
             }
         }
-        change();
 
         function refreshCountdown() {
-            heute = new Date();
+            heute = new Date(Date.now());
             diff = new Date(Number(to.getTime() - heute.getTime()));
-            let mons = String(Number(to.getMonth() - heute.getMonth()));
+            let mons = String(Number(to.getFullYear() - heute.getFullYear())*11+Number(to.getMonth() - heute.getMonth()));
             if (Number(mons) < 0) {
                 mons = String(Number(mons)+12);
             }
@@ -111,7 +122,7 @@
                 document.getElementById("d1").src = "../static/data/img/"+(theme==="none"?'':theme+'/')+"zahl-" + one(days) + ".png";
                 altD = days;
             }
-            let hrs = String(Number(diff.getHours() - 2));
+            let hrs = String(Number(diff.getHours() - 3));
             if (hrs !== altH || theme !== oldTheme) {
                 document.getElementById("h0").src = "../static/data/img/"+(theme==="none"?'':theme+'/')+"zahl-" + zero(hrs) + ".png";
                 document.getElementById("h1").src = "../static/data/img/"+(theme==="none"?'':theme+'/')+"zahl-" + one(hrs) + ".png";
@@ -131,9 +142,6 @@
             }
             oldTheme = theme;
         }
-
-        //window.requestAnimationFrame(refreshCountdown);
-        cd = setInterval(refreshCountdown, 200);
 
         function zero(s) {
             s = String(s);
