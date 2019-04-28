@@ -89,18 +89,23 @@
                 osterSonntag = new Date(OsterSonntag(year));
             }
             document.getElementById('useCustom').disabled = (chosen.toDateString() === 'Invalid Date');
-            if (radioValue === "os") {
-                to = osterSonntag;
-                $('#bis').text('next Easter Sunday');
-                theme = 'ostern';
-            } else if (radioValue === "weih") {
-                to = weihnachten;
-                $('#bis').text('next Christmas eve');
-                theme = 'weihnachten';
-            }else if (radioValue === "date") {
-                to = chosen;
-                $('#bis').text(chosen.toLocaleDateString());
-                theme = 'none';
+            let bis = $('#bis');
+            switch (radioValue) {
+                case "os":
+                    to = osterSonntag;
+                    bis.text('next Easter Sunday');
+                    theme = 'ostern';
+                    break;
+                case "weih":
+                    to = weihnachten;
+                    bis.text('next Christmas eve');
+                    theme = 'weihnachten';
+                    break;
+                case "date":
+                    to = chosen;
+                    bis.text(chosen.toLocaleDateString());
+                    theme = 'none';
+                    break;
             }
         }
 

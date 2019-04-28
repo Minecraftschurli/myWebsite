@@ -1,12 +1,13 @@
 from datetime import datetime
 import json
 import requests
+import screenutils as screen
 from flask import *
 from flask_bcrypt import Bcrypt
 
 import libs.adresslistenGenerator as aG
 from libs.ShootItData import ShootItData
-# from libs.camera import VideoCamera
+from libs.camera import VideoCamera
 from libs.user import User
 
 configs = dict()
@@ -57,6 +58,10 @@ routes = [""]
 cams = [0]
 
 users = {}
+if configs['meinheld']:
+    current_screen = screen.list_screens()[0]
+else:
+    current_screen = screen.Screen('webapp', initialize=True)
 
 
 @app.route('/')
@@ -255,7 +260,7 @@ def get_highscores():
     return jsonify(data=out)
 
 
-# @app.route('/cam')
+@app.route('/cam')
 def cam():
     if configs['camera'] and check_permission('camera'):
         return render_with_nav('cam')
@@ -268,23 +273,34 @@ def countdown():
     return render_with_nav('countdown')
 
 
-# @app.route('/video_feed/<cam_id>')
-# def video_feed(cam_id='0'):
-#     if (not configs['camera']) or (not cam_id.isnumeric()) or (int(cam_id) not in cams):
-#         return
-#     """Video streaming route. Put this in the src attribute of an img tag."""
-#     if check_permission('camera'):
-#         video_cameras = [VideoCamera('0')]
-#
-#         def gen_camera(camera):
-#             """Video streaming generator function."""
-#             while True:
-#                 frame = camera.get_frame()
-#                 yield (b'--frame\r\n'
-#                        b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-#
-#         return Response(stream_with_context(gen_camera(video_cameras[int(cam_id)])),
-#                         mimetype='multipart/x-mixed-replace; boundary=frame')
+@app.route('/video_feed/<cam_id>')
+def video_feed(cam_id='0'):
+    if (not configs['camera']) or (not cam_id.isnumeric()) or (int(cam_id) not in cams):
+        return
+    """Video streaming route. Put this in the src attribute of an img tag."""
+    if check_permission('camera'):
+        video_cameras = [VideoCamera('0')]
+
+        def gen_camera(camera):
+            """Video streaming generator function."""
+            while True:
+                frame = camera.get_frame()
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+        return Response(stream_with_context(gen_camera(video_cameras[int(cam_id)])),
+                        mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route('/admin/console')
+def console():
+    return Response(current_screen.logs)
+
+
+@app.route('/admin/console/test')
+def console_test():
+    current_screen.send_commands('echo "hello"')
+    return redirect(url_for('admin'))
 
 
 @app.route('/contact', methods=['GET', 'POST'])
