@@ -25,7 +25,30 @@
         .user_list tr:nth-child(even), .user_list tr:nth-child(even) * {
             background-color: #f2f2f2
         }
+
+        .console, .console * {
+            color: greenyellow;
+            background-color: black;
+        }
+
+        #output {
+            padding: 10px;
+            height: 20em;
+            overflow-y: scroll;
+        }
     </style>
+    <script>
+        let source = new EventSource("{{ url_for('console') }}");
+        source.onmessage = function(event) {
+            let data = JSON.parse(event.data);
+            let elem = document.getElementById("output");
+            console.log(data);
+            for (let i = 0; i < data.content.length; i++) {
+                elem.innerHTML += "["+data.timestamp+"] " + data.content[i] + "<br/>";
+                elem.scrollTop = elem.scrollHeight;
+            }
+        }
+    </script>
 {% endblock %}
 {% block content %}
     <article>
@@ -53,11 +76,6 @@
                                 Turn Camera {% if config['camera'] %}OFF{% else %}ON{% endif %}
                             </button>
                         </form>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <a href="{{ url_for('itboy') }}">ITBoy</a>
                     </td>
                 </tr>
                 </tbody>
@@ -88,8 +106,10 @@
             </table>
         </div>
     </article>
-    <article>
-    <object datasrc="{{ url_for('console') }}"></object>
+    <article style="padding: 10px;height: 50%">
+        <h2>Console</h2>
+        <div id="output" class="console"></div>
+        <iframe id="send" name="send" style="border: none;width: 100%;" src="{{ url_for('send_command') }}"></iframe>
     </article>
     <div id="popup" class="modal">
         <!-- Modal content -->
@@ -105,6 +125,7 @@
                     </p>
                     <p>
                         <label for="permissions">Permissions:</label><br/>
+                        <!--suppress CssInvalidPropertyValue -->
                         <textarea id="permissions" name="permissions" style="width: available; width: -webkit-fill-available; height: 115px"></textarea>
                     </p>
                     <button type="submit">EDIT</button>

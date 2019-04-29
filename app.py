@@ -1,5 +1,9 @@
-from datetime import datetime
 import json
+import platform
+import time
+from datetime import datetime
+from os.path import getsize
+
 import requests
 import screenutils as screen
 from flask import *
@@ -27,7 +31,7 @@ def save_config():
 
 load_config()
 
-if configs['meinheld']:
+if platform.system() is not 'Windows':
     import meinheld
 
 app = Flask(__name__)
@@ -58,10 +62,65 @@ routes = [""]
 cams = [0]
 
 users = {}
-if configs['meinheld']:
+
+testfile = './testfile.txt'
+
+
+class TestScreen(object):
+    def __init__(self):
+        self.logs = TestScreen.gen()
+
+    def enable_logs(self, filename=None):
+        self.logs = TestScreen.gen()
+
+    def disable_logs(self, remove_logfile=False):
+        self.logs = None
+
+    def send_commands(self, *commands):
+        for command in commands:
+            f = open(testfile, 'a')
+            f.write('<web-console> ' + command + '\n')
+            f.close()
+            from threading import Thread
+            thread = Thread(target=self.execute(command))
+            thread.start()
+
+    @staticmethod
+    def execute(command):
+        def exe():
+            if str(command).lower() == 'test':
+                lines = [str(i) + '\n' for i in ['Test Start', *range(10), 'Test End']]
+                for line in lines:
+                    f = open(testfile, 'a')
+                    f.write(line)
+                    f.close()
+                    time.sleep(1)
+            elif str(command).lower() in ['hello', 'hi']:
+                time.sleep(3)
+                f = open(testfile, 'a')
+                f.write('Hello Admin\n')
+                f.close()
+
+        return exe
+
+    @staticmethod
+    def gen():
+        last_size = getsize(testfile)
+        while True:
+            cur_size = getsize(testfile)
+            if cur_size != last_size:
+                with open(testfile, 'r') as f:
+                    f.seek(last_size if cur_size > last_size else 0)
+                    text = f.read()
+                    f.close()
+                    last_size = cur_size
+                    yield text
+
+
+if platform.system() is not 'Windows':
     current_screen = screen.list_screens()[0]
 else:
-    current_screen = screen.Screen('webapp', initialize=True)
+    current_screen = TestScreen()
 
 
 @app.route('/')
@@ -208,12 +267,12 @@ def shootit():
 @app.route('/games/itboy')
 def itboy():
     return render_with_nav('game', game_name='ITBoy', game_src='../static/games/itboy/ITBoy.html',
-                           game_settings=
-                           "aside {width: 100%;position: relative;overflow: hidden;max-width: 100%;}"
-                           "main {overflow-y: scroll;width: 1027px;min-width: 1027px;position: relative;padding: 10px}"
-                           "#fullscreen {display: none;}"
-                           ".iframe-cont iframe {border: inset 2px;height: 99.5%;width: 99%;resize: none;}"
-                           ".iframe-cont {resize: none;padding-bottom: 4px;}")
+                           game_settings=""
+                                         "aside {width: 100%;position: relative;overflow: hidden;max-width: 100%;}"
+                                         "main {overflow-y: scroll;width: 1027px;min-width: 1027px;position: relative;padding: 10px}"
+                                         "#fullscreen {display: none;}"
+                                         ".iframe-cont iframe {border: inset 2px;height: 99.5%;width: 99%;resize: none;}"
+                                         ".iframe-cont {resize: none;padding-bottom: 4px;}")
 
 
 @app.route('/static/games/shootit/GetOrCreateUserProfile?<opt>', methods=["POST"])
@@ -265,7 +324,7 @@ def cam():
     if configs['camera'] and check_permission('camera'):
         return render_with_nav('cam')
     else:
-        return redirect(url_for('index'))
+        abort(423)
 
 
 @app.route('/countdown')
@@ -279,7 +338,7 @@ def video_feed(cam_id='0'):
         return
     """Video streaming route. Put this in the src attribute of an img tag."""
     if check_permission('camera'):
-        video_cameras = [VideoCamera('0')]
+        video_cameras = [VideoCamera('0', use_detection=False)]
 
         def gen_camera(camera):
             """Video streaming generator function."""
@@ -294,13 +353,50 @@ def video_feed(cam_id='0'):
 
 @app.route('/admin/console')
 def console():
-    return Response(current_screen.logs)
+    if not check_permission('all'):
+        abort(423)
+    current_screen.enable_logs()
+
+    def gen():
+        while 1:
+            try:
+                if current_screen.logs is not None:
+                    for i in current_screen.logs:
+                        if '/admin/console' in str(i):
+                            continue
+                        data = {
+                            'timestamp': str(datetime.now().time().strftime('%H:%M:%S')),
+                            'content': escape(str(i)).splitlines(True)
+                        }
+                        yield "data:" + json.dumps(data) + "\n\n"
+                    break
+            except ValueError or TypeError:
+                current_screen.disable_logs()
+                current_screen.enable_logs()
+
+    return Response(gen(), mimetype='text/event-stream')
 
 
-@app.route('/admin/console/test')
-def console_test():
-    current_screen.send_commands('echo "hello"')
-    return redirect(url_for('admin'))
+@app.route('/admin/console/send', methods=['GET', 'POST'])
+def send_command():
+    if not check_permission('all'):
+        abort(423)
+    if request.method == 'POST':
+        command = request.form['command']
+        current_screen.send_commands(command)
+    return Response('<!DOCTYPE html><html>'
+                    '<head></head><body style="margin: 0">'
+                    '<label for="command">Send command</label>'
+                    '<form method="POST" style="width: 100%">'
+                    '<input id="command" name="command" type="text" style="'
+                    'width: 89.4%; '
+                    'border-color: black; '
+                    'color: greenyellow; '
+                    'background-color: black;'
+                    '" autocomplete="off" />'
+                    '<input type="submit" style="width: 10%;background-color: #CCCCCC;"/>'
+                    '</form>'
+                    '</body></html>')
 
 
 @app.route('/contact', methods=['GET', 'POST'])
@@ -341,7 +437,7 @@ def contact(remove=-1):
                 json.dump(json_obj, f, indent=2)
                 f.close()
                 message['text'] = 'Successfully sent'
-        except:
+        except Exception as e:
             message['type'] = 'alert'
             message['head'] = 'Alert!'
             message['text'] = 'An error occurred'
@@ -481,17 +577,16 @@ def save_users():
         json.dump(data, users_file, indent=4)
 
 
-def is_list(value):
-    return isinstance(value, list)
-
-
 load_users()
 
 if __name__ == '__main__':
+    def is_list(value):
+        return isinstance(value, list)
+
     app.jinja_env.filters.update({
         'is_list': is_list,
     })
-    if configs['meinheld']:
+    if platform.system() is not 'Windows':
         meinheld.listen(('0.0.0.0', 80))
         meinheld.run(app)
     else:
