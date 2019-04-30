@@ -33,25 +33,25 @@
 {% endblock %}
 {% block content %}
     <article>
-    <form action="{{ url_for('contact') }}" method="post">
-        <h2>Contact</h2>
-        {% if not loggedin %}
-            <h4><label for="fname">First Name</label></h4>
-            <input type="text" id="fname" name="firstname" placeholder="Your name.." {% if form != None %}value="{{ form['firstname'] }}"{% endif %} required/>
+        <form action="{{ url_for('contact') }}" method="post">
+            <h2>Contact</h2>
+            {% if not loggedin %}
+                <h4><label for="fname">First Name</label></h4>
+                <input type="text" id="fname" name="firstname" placeholder="Your name.." {% if form != None %}value="{{ form['firstname'] }}"{% endif %} required/>
 
-            <h4><label for="lname">Last Name</label></h4>
-            <input type="text" id="lname" name="lastname" placeholder="Your last name.." {% if form != None %}value="{{ form['lastname'] }}"{% endif %} required/>
+                <h4><label for="lname">Last Name</label></h4>
+                <input type="text" id="lname" name="lastname" placeholder="Your last name.." {% if form != None %}value="{{ form['lastname'] }}"{% endif %} required/>
 
-            <h4><label for="email">Email Address</label></h4>
-            <input type="email" id="email" name="email" placeholder="Your email address.." {% if form != None %}value="{{ form['email'] }}"{% endif %} required/>
-        {% endif %}
+                <h4><label for="email">Email Address</label></h4>
+                <input type="email" id="email" name="email" placeholder="Your email address.." {% if form != None %}value="{{ form['email'] }}"{% endif %} required/>
+            {% endif %}
 
-        <h4><label for="subject">Subject</label></h4>
-        <input type="text" id="subject" name="subject" placeholder="Subject.." {% if form != None %}value="{{ form['subject'] }}"{% endif %} required/>
+            <h4><label for="subject">Subject</label></h4>
+            <input type="text" id="subject" name="subject" placeholder="Subject.." {% if form != None %}value="{{ form['subject'] }}"{% endif %} required/>
 
-        <h4><label for="message">Message</label></h4>
-        <textarea id="message" name="message" placeholder="Write something.." style="height:200px" required>{% if form != None %}{{ form['message'] }}{% endif %}</textarea>
-        <input type="submit" value="Submit">
-    </form>
+            <h4><label for="message">Message</label></h4>
+            <textarea id="message" name="message" placeholder="Write something.." style="height:200px" required>{% if form != None %}{{ form['message'] }}{% endif %}</textarea>
+            <input type="submit" value="Submit">
+        </form>
     </article>
 {% endblock %}

@@ -19,7 +19,8 @@
     </style>
 {% endblock %}#}
 {% block content %}
-    <h1>Video Streaming</h1>
-    <img src="{{ url_for('video_feed', cam_id=0) }}" alt="camera feed">
-{#    <object data="{{ url_for('people_feed', cam_id=0) }}" type="text/plain"></object>#}
+    <article>
+        <h1>Video Streaming</h1>
+        <img src="{{ url_for('video_feed', cam_id=0) }}" alt="camera feed" />
+    </article>
 {% endblock %}

@@ -104,6 +104,7 @@ workon OpenCV-"$cvVersion"-py3
 sudo sed -i 's/CONF_SWAPSIZE=100/CONF_SWAPSIZE=2048/g' /etc/dphys-swapfile
 sudo /etc/init.d/dphys-swapfile stop
 sudo /etc/init.d/dphys-swapfile start
+pip install wheel
 pip install numpy dlib
 # quit virtual environment
 deactivate

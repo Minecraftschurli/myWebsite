@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../static/css/gamePage.css"/>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
-    <script type='text/javascript'>
+    <script>
     $(document).ready(function () {
         var game_frame = document.getElementById('game_frame');
         var fsc = function (evt) {
@@ -25,17 +25,18 @@
         game_frame.focus();
     });
     </script>
-    <style type="text/css">
+    <style>
         {{ game_settings }}
     </style>
 {% endblock %}
 {% block title %}Game {{ game_name }}{% endblock %}
 {% block content %}
     <article>
-    <div class="iframe-cont">
-        <iframe id="game_frame" class="iframe" src="{{ game_src }}"></iframe>
-    </div>
-    <br/>
-    <button id="fullscreen" onclick="{document.getElementById('game_frame').requestFullscreen(); document.getElementById('game_frame').focus()}">Fullscreen</button>
+        <h2>{{ game_name }}</h2>
+        <div class="iframe-cont">
+            <iframe id="game_frame" class="iframe" src="{{ game_src }}"></iframe>
+        </div>
+        <br/>
+        <button id="fullscreen" onclick="{document.getElementById('game_frame').requestFullscreen(); document.getElementById('game_frame').focus()}">Fullscreen</button>
     </article>
 {% endblock %}

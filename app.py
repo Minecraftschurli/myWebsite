@@ -1,11 +1,11 @@
 import json
 import platform
-import time
+# import time
 from datetime import datetime
-from os.path import getsize
+# from os.path import getsize
 
 import requests
-import screenutils as screen
+# import screenutils as screen
 from flask import *
 from flask_bcrypt import Bcrypt
 
@@ -63,64 +63,64 @@ cams = [0]
 
 users = {}
 
-testfile = './testfile.txt'
-
-
-class TestScreen(object):
-    def __init__(self):
-        self.logs = TestScreen.gen()
-
-    def enable_logs(self, filename=None):
-        self.logs = TestScreen.gen()
-
-    def disable_logs(self, remove_logfile=False):
-        self.logs = None
-
-    def send_commands(self, *commands):
-        for command in commands:
-            f = open(testfile, 'a')
-            f.write('<web-console> ' + command + '\n')
-            f.close()
-            from threading import Thread
-            thread = Thread(target=self.execute(command))
-            thread.start()
-
-    @staticmethod
-    def execute(command):
-        def exe():
-            if str(command).lower() == 'test':
-                lines = [str(i) + '\n' for i in ['Test Start', *range(10), 'Test End']]
-                for line in lines:
-                    f = open(testfile, 'a')
-                    f.write(line)
-                    f.close()
-                    time.sleep(1)
-            elif str(command).lower() in ['hello', 'hi']:
-                time.sleep(3)
-                f = open(testfile, 'a')
-                f.write('Hello Admin\n')
-                f.close()
-
-        return exe
-
-    @staticmethod
-    def gen():
-        last_size = getsize(testfile)
-        while True:
-            cur_size = getsize(testfile)
-            if cur_size != last_size:
-                with open(testfile, 'r') as f:
-                    f.seek(last_size if cur_size > last_size else 0)
-                    text = f.read()
-                    f.close()
-                    last_size = cur_size
-                    yield text
-
-
-if platform.system() is not 'Windows':
-    current_screen = screen.list_screens()[0]
-else:
-    current_screen = TestScreen()
+# testfile = './testfile.txt'
+#
+#
+# class TestScreen(object):
+#     def __init__(self):
+#         self.logs = TestScreen.gen()
+#
+#     def enable_logs(self, filename=None):
+#         self.logs = TestScreen.gen()
+#
+#     def disable_logs(self, remove_logfile=False):
+#         self.logs = None
+#
+#     def send_commands(self, *commands):
+#         for command in commands:
+#             f = open(testfile, 'a')
+#             f.write('<web-console> ' + command + '\n')
+#             f.close()
+#             from threading import Thread
+#             thread = Thread(target=self.execute(command))
+#             thread.start()
+#
+#     @staticmethod
+#     def execute(command):
+#         def exe():
+#             if str(command).lower() == 'test':
+#                 lines = [str(i) + '\n' for i in ['Test Start', *range(10), 'Test End']]
+#                 for line in lines:
+#                     f = open(testfile, 'a')
+#                     f.write(line)
+#                     f.close()
+#                     time.sleep(1)
+#             elif str(command).lower() in ['hello', 'hi']:
+#                 time.sleep(3)
+#                 f = open(testfile, 'a')
+#                 f.write('Hello Admin\n')
+#                 f.close()
+#
+#         return exe
+#
+#     @staticmethod
+#     def gen():
+#         last_size = getsize(testfile)
+#         while True:
+#             cur_size = getsize(testfile)
+#             if cur_size != last_size:
+#                 with open(testfile, 'r') as f:
+#                     f.seek(last_size if cur_size > last_size else 0)
+#                     text = f.read()
+#                     f.close()
+#                     last_size = cur_size
+#                     yield text
+#
+#
+# if platform.system() is not 'Windows':
+#     current_screen = screen.list_screens()[0]
+# else:
+#     current_screen = TestScreen()
 
 
 @app.route('/')
@@ -351,52 +351,52 @@ def video_feed(cam_id='0'):
                         mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
-@app.route('/admin/console')
-def console():
-    if not check_permission('all'):
-        abort(423)
-    current_screen.enable_logs()
-
-    def gen():
-        while 1:
-            try:
-                if current_screen.logs is not None:
-                    for i in current_screen.logs:
-                        if '/admin/console' in str(i):
-                            continue
-                        data = {
-                            'timestamp': str(datetime.now().time().strftime('%H:%M:%S')),
-                            'content': escape(str(i)).splitlines(True)
-                        }
-                        yield "data:" + json.dumps(data) + "\n\n"
-                    break
-            except ValueError or TypeError:
-                current_screen.disable_logs()
-                current_screen.enable_logs()
-
-    return Response(gen(), mimetype='text/event-stream')
-
-
-@app.route('/admin/console/send', methods=['GET', 'POST'])
-def send_command():
-    if not check_permission('all'):
-        abort(423)
-    if request.method == 'POST':
-        command = request.form['command']
-        current_screen.send_commands(command)
-    return Response('<!DOCTYPE html><html>'
-                    '<head></head><body style="margin: 0">'
-                    '<label for="command">Send command</label>'
-                    '<form method="POST" style="width: 100%">'
-                    '<input id="command" name="command" type="text" style="'
-                    'width: 89.4%; '
-                    'border-color: black; '
-                    'color: greenyellow; '
-                    'background-color: black;'
-                    '" autocomplete="off" />'
-                    '<input type="submit" style="width: 10%;background-color: #CCCCCC;"/>'
-                    '</form>'
-                    '</body></html>')
+# @app.route('/admin/console')
+# def console():
+#     if not check_permission('all'):
+#         abort(423)
+#     current_screen.enable_logs()
+#
+#     def gen():
+#         while 1:
+#             try:
+#                 if current_screen.logs is not None:
+#                     for i in current_screen.logs:
+#                         if '/admin/console' in str(i) or i is "":
+#                             continue
+#                         data = {
+#                             'timestamp': str(datetime.now().time().strftime('%H:%M:%S')),
+#                             'content': escape(str(i)).splitlines(True)
+#                         }
+#                         yield "data:" + json.dumps(data) + "\n\n"
+#                     break
+#             except ValueError or TypeError:
+#                 current_screen.disable_logs()
+#                 current_screen.enable_logs()
+#
+#     return Response(gen(), mimetype='text/event-stream')
+#
+#
+# @app.route('/admin/console/send', methods=['GET', 'POST'])
+# def send_command():
+#     if not check_permission('all'):
+#         abort(423)
+#     if request.method == 'POST':
+#         command = request.form['command']
+#         current_screen.send_commands(command)
+#     return Response('<!DOCTYPE html><html>'
+#                     '<head></head><body style="margin: 0">'
+#                     '<label for="command">Send command</label>'
+#                     '<form method="POST" style="width: 100%">'
+#                     '<input id="command" name="command" type="text" style="'
+#                     'width: 89.4%; '
+#                     'border-color: black; '
+#                     'color: greenyellow; '
+#                     'background-color: black;'
+#                     '" autocomplete="off" />'
+#                     '<input type="submit" style="width: 10%;background-color: #CCCCCC;"/>'
+#                     '</form>'
+#                     '</body></html>')
 
 
 @app.route('/contact', methods=['GET', 'POST'])

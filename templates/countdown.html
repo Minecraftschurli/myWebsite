@@ -17,38 +17,38 @@
 {% block title %}Countdown{% endblock %}
 {% block content %}
     <article>
-    <div id="form">
-        <label for="use1">Until next Easter Sunday</label>
-        <input type="radio" name="use" id="use1" value="os" onchange="change();" checked/>
-        <br/>
-        <label for="use2">Until next Christmas eve</label>
-        <input type="radio" name="use" id="use2" value="weih" onchange="change();"/>
-        <br/>
-        <label for="useCustom">Until <input type="date" name="date" id="date" onchange="change()"/></label>
-        <input type="radio" name="use" id="useCustom" value="date" onchange="change();" disabled/>
-        <label for="date"></label>
-    </div>
-    <div class="timerCont">
-        <div class="timer" style="align-content: center">
-            Time until <span id="bis"></span>: <br/>
-            <div style="margin-top: 3px;width: 285px;">
-                <img class="num" id="m0" src="" alt="">
-                <img class="num" id="m1" src="" alt="">
-                <img src="../static/data/img/spacer2.png" alt="">
-                <img class="num" id="d0" src="" alt="">
-                <img class="num" id="d1" src="" alt="">
-                <img src="../static/data/img/spacer2.png" alt="">
-                <img class="num" id="h0" src="" alt="">
-                <img class="num" id="h1" src="" alt="">
-                <img src="../static/data/img/spacer2.png" alt="">
-                <img class="num" id="min0" src="" alt="">
-                <img class="num" id="min1" src="" alt="">
-                <img src="../static/data/img/spacer2.png" alt="">
-                <img class="num" id="s0" src="" alt="">
-                <img class="num" id="s1" src="" alt="">
+        <div id="form">
+            <label for="use1">Until next Easter Sunday</label>
+            <input type="radio" name="use" id="use1" value="os" onchange="change();" checked/>
+            <br/>
+            <label for="use2">Until next Christmas eve</label>
+            <input type="radio" name="use" id="use2" value="weih" onchange="change();"/>
+            <br/>
+            <label for="useCustom">Until <input type="date" name="date" id="date" onchange="change()"/></label>
+            <input type="radio" name="use" id="useCustom" value="date" onchange="change();" disabled/>
+            <label for="date"></label>
+        </div>
+        <div class="timerCont">
+            <div class="timer" style="align-content: center">
+                Time until <span id="bis"></span>: <br/>
+                <div style="margin-top: 3px;width: 285px;">
+                    <img class="num" id="m0" src="" alt="">
+                    <img class="num" id="m1" src="" alt="">
+                    <img src="../static/data/img/spacer2.png" alt="">
+                    <img class="num" id="d0" src="" alt="">
+                    <img class="num" id="d1" src="" alt="">
+                    <img src="../static/data/img/spacer2.png" alt="">
+                    <img class="num" id="h0" src="" alt="">
+                    <img class="num" id="h1" src="" alt="">
+                    <img src="../static/data/img/spacer2.png" alt="">
+                    <img class="num" id="min0" src="" alt="">
+                    <img class="num" id="min1" src="" alt="">
+                    <img src="../static/data/img/spacer2.png" alt="">
+                    <img class="num" id="s0" src="" alt="">
+                    <img class="num" id="s1" src="" alt="">
+                </div>
             </div>
         </div>
-    </div>
     </article>
     <script>
         let heute;
@@ -112,7 +112,11 @@
         function refreshCountdown() {
             heute = new Date(Date.now());
             diff = new Date(Number(to.getTime() - heute.getTime()));
-            let mons = String(Number(to.getFullYear() - heute.getFullYear())*11+Number(to.getMonth() - heute.getMonth()));
+            let mons;
+            mons = (to.getFullYear() - heute.getFullYear()) * 12;
+            mons -= heute.getMonth() + 1;
+            mons += to.getMonth();
+            mons = String(Number(mons));
             if (Number(mons) < 0) {
                 mons = String(Number(mons)+12);
             }

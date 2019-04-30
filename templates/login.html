@@ -33,21 +33,21 @@
 {% endblock %}
 {% block content %}
     <article>
-    <form method="post">
-        <div class="container">
-            <h1>Login</h1>
-            <hr>
-            <p><label for="username"><b>Username</b></label><br/>
-                <input type="text" placeholder="Enter Username" name="username" required></p>
+        <h2>Login</h2>
+        <form method="post">
+            <div class="container">
+                <hr>
+                <p><label for="username"><b>Username</b></label><br/>
+                    <input type="text" placeholder="Enter Username" name="username" id="username" required></p>
 
-            <p><label for="password"><b>Password</b></label><br/>
-                <input type="password" placeholder="Enter Password" name="password" required></p>
-            <hr>
-            <input type="submit" value="Login"/>
-        </div>
-        <div class="container">
-            <p>Don't have an account? Register <a href="{{ url_for("register") }}">here</a></p>
-        </div>
-    </form>
+                <p><label for="password"><b>Password</b></label><br/>
+                    <input type="password" placeholder="Enter Password" name="password" id="password" required></p>
+                <hr>
+                <input type="submit" value="Login"/>
+            </div>
+            <div class="container">
+                <p>Don't have an account? Register <a href="{{ url_for("register") }}">here</a></p>
+            </div>
+        </form>
     </article>
 {% endblock %}

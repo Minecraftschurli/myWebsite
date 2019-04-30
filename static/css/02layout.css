@@ -31,7 +31,7 @@ main {
 
 body > footer {
     flex: 0 1 40px;
-    background-color: #222;
+    background-color: var(--secondary-color);
 }
 
 .flexbox {
@@ -50,7 +50,7 @@ body > footer {
 }
 
 .header {
-    background-color: #4CAF50;
+    background-color: var(--primary-color);
     width: 100%;
     margin: 0;
     height: 50px;

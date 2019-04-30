@@ -4,3 +4,8 @@
 @import "05vnav.css";
 @import "06print.css";
 @import "07forms.css";
+
+:root {
+    --primary-color: #4CAF50;
+    --secondary-color: #222;
+}
