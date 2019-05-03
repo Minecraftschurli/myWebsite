@@ -46,13 +46,13 @@ nav = [("Home", "/", "any", False),
            ("Superheroes X", "/sx", "any", False),
            ("ShootIt", "/games/shootit", "any", False),
            ("ITBoy", "/games/itboy", "any", False),
-           ("Adresslistengenerator", "/nwtk", "nwtk", False)
+           ("Adresslistengenerator", "/adr_gen", ("school", "adr_gen"), False)
        ], "any", False),
        ("Links", [
            ("GitHub <i class='fab fa-github' style='font-size: 120%;'></i>", "/github", "any", True),
            ("Twitch <i class='fab fa-twitch' style='font-size: 120%;color: purple'></i>", "/twitch", "any", True),
            ("Twitter <i class='fab fa-twitter' style='font-size: 120%;color: #55ACEE'></i>", "/twitter", "any", True),
-           ("TGM - Projektserver", "/webspace", "nwtk", True)
+           ("TGM - Projektserver", "/webspace", "school", True)
        ], "any", False),
        ("Contact", "/contact", "any", False),
        # ("Cam", "/cam", "camera", False),
@@ -61,7 +61,7 @@ nav = [("Home", "/", "any", False),
 routes = [""]
 cams = [0]
 
-users = {}
+users = dict()
 
 # testfile = './testfile.txt'
 #
@@ -129,9 +129,19 @@ def index():
 
 
 @app.route('/admin')
+def admin():
+    sorted_users = []
+    for key in sorted(users.keys(), key=lambda x: x.lower()):
+        sorted_users.append((key, users[key]))
+    return render_with_nav('admin/admin', users=sorted_users, config=configs)
+
+
 @app.route('/admin/<command>', methods=['POST', 'GET'])
 @app.route('/admin/remove_user/<param>', methods=['POST', 'GET'])
-def admin(command='', param=''):
+def admin_commands(command='', param=''):
+    if not check_permission('all'):
+        abort(423)
+
     messages = []
 
     def reload_user(_=None):
@@ -144,11 +154,6 @@ def admin(command='', param=''):
             users[request.form['username']].permissions = str(request.form['permissions']).split(', ')
             reload_user()
         messages.append({'type': 'success', 'text': 'edit user permissions', 'head': 'Success!'})
-
-    def _remove_user(user):
-        remove_user(user)
-        reload_user()
-        messages.append({'type': 'success', 'text': 'removed user', 'head': 'Success!'})
 
     def toggle_camera(_=None):
         configs['camera'] = (not configs['camera'])
@@ -163,17 +168,19 @@ def admin(command='', param=''):
     def nothing(_=None):
         pass
 
-    if check_permission('all'):
-        {
-            "reload_user": reload_user,
-            "edit_user_permissions": edit_user_permissions,
-            "remove_user": _remove_user,
-            "toggle_camera": toggle_camera,
-            "reload_config": reload_config
-        }.get(command, nothing)(param)
-        return render_with_nav("admin", users=users.items(), config=configs, messages=messages)
-    else:
-        abort(423)
+    def _remove_user(user):
+        remove_user(user)
+        reload_user()
+        messages.append({'type': 'success', 'text': 'removed user', 'head': 'Success!'})
+
+    {
+        "reload_user": reload_user,
+        "edit_user_permissions": edit_user_permissions,
+        "remove_user": _remove_user,
+        "toggle_camera": toggle_camera,
+        "reload_config": reload_config
+    }.get(command, nothing)(param)
+    return render_template("admin/admin_messages.html", messages=messages)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -212,9 +219,9 @@ def logout():
     return redirect(url_for('index'))
 
 
-@app.route('/nwtk', methods=['POST', 'GET'])
-def nwtk():
-    if not check_permission('nwtk'):
+@app.route('/adr_gen', methods=['POST', 'GET'])
+def adr_gen():
+    if not check_permission('school'):
         return redirect(url_for('login'))
     ta = ["", ""]
     if request.method == 'POST':
@@ -240,7 +247,7 @@ def nwtk():
 
     s = '<style>\nul{\nmargin-top: 0;\nlist-style-type: none;\n}\nh4{\nmargin-top: ' \
         '2px;\nmargin-bottom: 5px;\n}\n</style>\n'
-    return render_with_nav("nwtk", request=request, out=html, calc_needles=aG.calc_needles, ta=ta, style=s)
+    return render_with_nav("adr_gen", request=request, out=html, calc_needles=aG.calc_needles, ta=ta, style=s)
 
 
 @app.route('/sx')
@@ -411,7 +418,7 @@ def contact(remove=-1):
                 file.seek(0)
                 json.dump(json_obj, file, indent=2)
                 messages.append({'type': 'success', 'head': 'Success!', 'text': 'removed message'})
-            return render_with_nav('admin_contact', contact=json_obj, messages=messages)
+            return render_with_nav('admin/admin_contact', contact=json_obj, messages=messages)
     message = {'type': 'success', 'text': '', 'head': 'Success!'}
     form = None
     if request.method == 'POST':
@@ -461,7 +468,7 @@ def get_contact_msgs():
 
 @app.route('/webspace')
 def webspace():
-    if check_permission('nwtk'):
+    if check_permission('school'):
         return redirect('https://projekte.tgm.ac.at/2dhit/gburkl/')
     else:
         abort(423)
@@ -516,8 +523,8 @@ def render_with_nav(name, **kwargs):
 
 
 def check_permission(permission):
-    return 'username' in session and valid_user(session['username']) and has_user_permission(permission, user_for_name(
-        session['username']))
+    if 'username' in session and valid_user(session['username']):
+        return has_user_permission(permission, user_for_name(session['username']))
 
 
 def user_for_name(name):
@@ -525,7 +532,15 @@ def user_for_name(name):
 
 
 def has_user_permission(permission, user):
-    return permission in user.permissions or "all" in user.permissions
+    if "all" in user.permissions:
+        return True
+    if isinstance(permission, tuple):
+        for p in permission:
+            if p in user.permissions:
+                return True
+    else:
+        return permission in user.permissions
+    return False
 
 
 def valid_login(name, password):
@@ -538,8 +553,8 @@ def add_user(fname, lname, name, password, email, permissions=None):
     if permissions is None:
         permissions = list()
     if name not in users:
-        if email == (name + '@student.tgm.ac.at') and not ('nwtk' in permissions):
-            permissions.append('nwtk')
+        if email == (name + '@student.tgm.ac.at') and not ('school' in permissions):
+            permissions.append('school')
         users[name] = User(fname, lname, name, bcrypt.generate_password_hash(password).decode('utf-8'), email,
                            permissions)
         return True
@@ -590,4 +605,4 @@ if __name__ == '__main__':
         meinheld.listen(('0.0.0.0', 80))
         meinheld.run(app)
     else:
-        app.run(None, 80, False, threaded=True)
+        app.run('0.0.0.0', 80, False, threaded=True)

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        html, body{
+            margin: 0;
+            padding: 0;
+        }
+        .notification {
+            padding: 20px;
+            color: white;
+            opacity: 1;
+            transition: opacity 0.6s;
+            /*margin-bottom: 15px;*/
+        }
+
+        .notification.success, .notification.success * {background-color: #4CAF50;}
+        .notification.info, .notification.info * {background-color: #2196F3;}
+        .notification.warning, .notification.warning * {background-color: #ff9800;}
+        .notification.alert, .notification.alert * {background-color: #f44336;}
+
+        .closebtn {
+            margin-left: 15px;
+            color: white;
+            font-weight: bold;
+            float: right;
+            font-size: 22px;
+            line-height: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .closebtn:hover {
+            color: black;
+        }
+    </style>
+    <title>YOU SHOULD NOT BE HERE</title>
+</head>
+<body>
+<div>
+{% for message in messages %}
+    <div class="notification {{ message['type'] }}">
+        <span class="closebtn" onclick="this.parentElement.style.display='none';window.top.f();">&times;</span>
+        <strong>{{ message['head'] }}</strong> <span id="text">{{ message['text'] }}</span>
+    </div>
+{% endfor %}
+</div>
+</body>
+</html>

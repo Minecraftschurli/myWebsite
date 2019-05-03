@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+{% block title %}Admin{% endblock %}
+{% block head %}
+    <style>
+        .user_list {
+            border: 0;
+            border-collapse: collapse;
+            border-spacing: 0;
+            width: 100%;
+            display: block;
+            overflow-y: auto;
+        }
+
+        .user_list th, .user_list td {
+            text-align: left;
+            padding: 8px;
+        }
+
+        .user_list tr {
+            height: 2.3em
+        }
+
+        .user_list tr:hover[onclick], .control > *:hover {
+            cursor: pointer;
+            opacity: 0.75;
+        }
+
+        .user_list tr:nth-child(even), .user_list tr:nth-child(even) * {
+            background-color: #a3a3a3
+        }
+
+        .user_list tr:nth-child(odd), .user_list tr:nth-child(odd) * {
+            background-color: #f2f2f2
+        }
+
+        .user_list td:nth-child(1) {
+            width: 10%
+        }
+
+        .user_list td:nth-child(2) {
+            width: 35%
+        }
+
+        .user_list td:nth-child(3) {
+            width: 3%
+        }
+
+        .console, .console * {
+            color: greenyellow;
+            background-color: black;
+        }
+
+        #output {
+            padding: 10px;
+            height: 20em;
+            overflow-y: scroll;
+        }
+
+        .control, .control * {
+            display: inline-block;
+        }
+
+        .control {
+            height: 32px;
+        }
+
+        .control > * {
+            height: 100%;
+            height: -webkit-fill-available;
+        }
+
+        .control * {
+            border-radius: 10px;
+            padding: 4px;
+            border-color: var(--secondary-color);
+            background-color: var(--primary-color);
+        }
+
+        .control > button {
+            font-size: 15px;
+            padding: 5.5px;
+        }
+
+        .control > div {
+            border-width: 2px;
+            border-radius: 10px;
+            border-style: solid;
+            font: 400 13.3333px Arial;
+        }
+
+        .control div * {
+            border-radius: 20px;
+            padding: 0;
+            border: 1px solid var(--secondary-color);
+        }
+
+        article {
+            margin-bottom: 50px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 29px;
+            height: 17px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: darkred;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 11px;
+            width: 11px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        input:checked + .slider {
+            background-color: darkgreen;
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px darkgreen;
+        }
+
+        input:checked + .slider:before {
+            -webkit-transform: translateX(11px);
+            -ms-transform: translateX(11px);
+            transform: translateX(11px);
+        }
+
+        /* Rounded sliders */
+        .slider.round {
+            border-radius: 17px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
+    {## <script>
+        let source = new EventSource("{{ url_for('console') }}");
+        source.onmessage = function(event) {
+            let data = JSON.parse(event.data);
+            let elem = document.getElementById("output");
+            console.log(data);
+            for (let i = 0; i < data.content.length; i++) {
+                elem.innerHTML += "["+data.timestamp+"] " + data.content[i] + "<br/>";
+                elem.scrollTop = elem.scrollHeight;
+            }
+        }
+    </script>#}
+    <script>
+        function camera_status() {
+            let text = $('#messages').contents().find('#text').text().toLowerCase();
+            return text.includes('camera') ? text.includes('on') : undefined;
+        }
+
+        function f() {
+            let elem = document.getElementById('messages');
+            $(elem).css('height', $(elem.contentWindow.document.body).height());
+        }
+
+        function sleep(milliseconds) {
+            let start = new Date().getTime();
+            for (let i = 0; i < 1e7; i++) {
+                if ((new Date().getTime() - start) > milliseconds) {
+                    break;
+                }
+            }
+        }
+
+        $(document).ready(function () {
+            $('#messages').load(function () {
+                let status = camera_status();
+                if (status !== undefined) {
+                    document.getElementById('cam').checked = status;
+                }
+            });
+        });
+
+    </script>
+{% endblock %}
+{% block content %}
+    <iframe style="border: none; width: 100%; height: 0" id="messages" name="messages" onload="f();"></iframe>
+    <article>
+        <h2>Controls</h2>
+        <form class="control" target="messages" action="{{ url_for('admin_commands', command='reload_user') }}"
+              method="post">
+            <button type="submit" style="float: left">Reload User</button>
+        </form>
+        <form class="control" target="messages" action="{{ url_for('admin_commands', command='reload_config') }}"
+              method="post">
+            <button type="submit" style="float: left">Reload Config</button>
+        </form>
+        <form class="control" target="messages" action="{{ url_for('admin_commands', command='toggle_camera') }}"
+              method="post">
+            <div style="float: left;" onclick="document.getElementById('cam').click()">
+                <div style="vertical-align: text-top;border: none;">
+                    <span style="font-size: 15px;border: none;padding-left: 2px">Camera</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="cam" onchange="this.form.submit();"
+                           {% if config['camera'] %}checked{% endif %}/>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </form>
+    </article>
+    <article>
+        <h2>Users</h2>
+        <table style="width: 100%;row-gap: 0;border: 0;border-collapse: collapse;border-spacing: 0;">
+            <tbody>
+            <tr>
+                <td style="padding: 0;margin: 0;">
+                    <table style="width: 100%;padding: 0;background-color: #a3a3a3;border: 0;border-collapse: collapse;border-spacing: 0;">
+                        <tbody>
+                        <tr style="height: 2.3em">
+                            <th style="background-color: #a3a3a3;width: 10%">User</th>
+                            <th style="background-color: #a3a3a3;width: 35%">Permissions</th>
+                            <th style="background-color: #a3a3a3;width: 3%"><i class="fas fa-trash-alt" style="visibility: hidden;"></i></th>
+                        </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 0;margin: 0">
+                    <div style="height: 24em;position: relative;width: 100%;display: grid">
+                        <table class="user_list" style="position: relative">
+                            <tbody>
+                            {% for _, user in users %}
+                                <tr style="height: 30px" {% if user.username != "admin" %}onclick="
+                                        document.getElementById('username').value = '{{ user.username }}';
+                                        document.getElementById('uname').innerText = '{{ user.username }}';
+                                        document.getElementById('permissions').value = '{{ user.permissions|join(', ') }}';
+                                        document.getElementById('popup').style.display = 'block';"{% endif %}>
+                                    <td>{{ user.username }}</td>
+                                    <td>{{ user.permissions }}</td>
+                                    <td style="padding: 0;">{% if user.username != "admin" %}
+                                        <a style="text-decoration: none; font-size: 100%; text-align: right; color: red;"
+                                           href="{{ url_for('admin_commands', command='remove_user', param=(user.username|string)) }}"><i
+                                                class="fas fa-trash-alt"></i></a>{% endif %}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </article>
+    {## <article style="padding: 10px;height: 50%">
+        <h2>Console</h2>
+        <div id="output" class="console"></div>
+        <iframe id="send" name="send" style="border: none;width: 100%;" src="{{ url_for('send_command') }}"></iframe>
+    </article> #}
+    <div id="popup" class="modal">
+        <!-- Modal content -->
+        <div class="modal-content" style="width: 25%; height: 25%">
+            <div class="modal-header">
+                <span class="close" onclick="document.getElementById('popup').style.display = 'none';">&times;</span>
+            </div>
+            <div class="modal-body" style="margin: 0 auto;height: 100%">
+                <form action="{{ url_for('admin', command='edit_user_permissions') }}" method="post" id="add_user">
+                    <p>
+                        <label for="username">Username: <span id="uname"></span></label><br/>
+                        <input id="username" type="text" name="username" hidden/>
+                    </p>
+                    <p>
+                        <label for="permissions">Permissions:</label><br/>
+                        <!--suppress CssInvalidPropertyValue -->
+                        <textarea id="permissions" name="permissions"
+                                  style="width: -webkit-fill-available; height: 115px"></textarea>
+                    </p>
+                    <button type="submit">EDIT</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

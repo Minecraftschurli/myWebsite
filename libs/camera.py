@@ -1,6 +1,6 @@
 import cv2
 #
-# COLOR = {'WHITE': [255, 255, 255], 'BLUE': [255, 0, 0], 'GREEN': [0, 255, 0], 'RED': [0, 0, 255], 'BLACK': [0, 0, 0]}
+COLOR = {'WHITE': [255, 255, 255], 'BLUE': [255, 0, 0], 'GREEN': [0, 255, 0], 'RED': [0, 0, 255], 'BLACK': [0, 0, 0]}
 #
 # if platform.system() is not 'Windows':
 #     DIR = '/home/pi/opencv-3.4.3/data/haarcascades/'
@@ -16,8 +16,8 @@ import cv2
 # cascades = [upperbody_cascade, lowerbody_cascade, fullbody_cascade, frontalface_cascade, profileface_cascade]
 #
 #
-# modelFile = "./models/opencv_face_detector_uint8.pb"
-# configFile = "./models/opencv_face_detector.pbtxt"
+# modelFile = "/home/pi/webapp/libs/models/opencv_face_detector_uint8.pb"
+# configFile = "/home/pi/webapp/libs/models/opencv_face_detector.pbtxt"
 # net = cv2.dnn.readNetFromTensorflow(modelFile, configFile)
 # conf_threshold = 0.7
 #
@@ -86,21 +86,19 @@ class VideoCamera(object):
         # We are using Motion JPEG, but OpenCV defaults to capture raw images,
         # so we must encode it into JPEG in order to correctly display the
         # video stream.
-        # if self.use_detection:
-        #     detects = []
+        if self.use_detection:
+            detects = []
         #     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         #     for detect in frontalface_cascade.detectMultiScale(gray, 1.1, 4):
         #         detects.append(detect)
         #     for cascade in cascades:
         #         for detect in cascade.detectMultiScale(gray, 1.1, 4):
         #             detects.append(detect)
-
-        #     self.people_detected = len(detects) > 0
-        #     for x, y, w, h in detects:
-        #         draw_box(image, x, y, w, h, COLOR['BLUE'])
-
-        # image, people = detect_face_open_cv_dnn(net, image)
-        # self.people_detected = len(people) > 0
+        #
+            # image, detects = detect_face_open_cv_dnn(net, image)
+            # self.people_detected = len(detects) > 0
+            # for x, y, w, h in detects:
+            #     draw_box(image, x, y, w, h, COLOR['BLUE'])
 
         _, jpeg = cv2.imencode('.jpg', image)
         return jpeg.tobytes()
