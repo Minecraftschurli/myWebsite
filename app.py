@@ -9,9 +9,10 @@ from urllib.parse import urlparse, urljoin
 import requests
 from flask import *
 from flask_bcrypt import *
-from flask_login import *  # LoginManager, login_required, current_user, login_user, logout_user
+from flask_login import LoginManager, login_required, current_user, login_user, logout_user
 
-from libs.__init__ import User, adresslistenGenerator, ShootItData, VideoCamera
+from libs import adresslistenGenerator
+from libs.__init__ import User, ShootItData, VideoCamera
 
 app = Flask(__name__)
 
