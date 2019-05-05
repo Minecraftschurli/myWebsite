@@ -42,11 +42,15 @@
 
                 <p><label for="password"><b>Password</b></label><br/>
                     <input type="password" placeholder="Enter Password" name="password" id="password" required></p>
+                <label class="checkbox">
+                    <input type="checkbox" name="remember">
+                    Remember me
+                </label>
                 <hr>
                 <input type="submit" value="Login"/>
             </div>
             <div class="container">
-                <p>Don't have an account? Register <a href="{{ url_for("register") }}">here</a></p>
+                <p>Don't have an account? Register <a href="{{ url_for("signup") }}">here</a></p>
             </div>
         </form>
     </article>

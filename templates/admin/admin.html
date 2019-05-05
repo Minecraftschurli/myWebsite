@@ -95,7 +95,7 @@
         }
 
         article {
-            margin-bottom: 50px;
+            margin-bottom: 15px;
         }
 
         .switch {
@@ -159,19 +159,21 @@
         }
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
-    {## <script>
-        let source = new EventSource("{{ url_for('console') }}");
-        source.onmessage = function(event) {
-            let data = JSON.parse(event.data);
-            let elem = document.getElementById("output");
-            console.log(data);
-            for (let i = 0; i < data.content.length; i++) {
-                elem.innerHTML += "["+data.timestamp+"] " + data.content[i] + "<br/>";
-                elem.scrollTop = elem.scrollHeight;
-            }
-        }
-    </script>#}
     <script>
+        setInterval(() => {
+            fetch("{{ url_for('console') }}")
+                .then(response => {
+                    response.text().then(t => {
+                        let data = JSON.parse(t);
+                        let elem = document.getElementById("output");
+                        for (let i = 0; i < data.content.length; i++) {
+                            elem.innerHTML += data.content[i] + "<br/>";
+                            elem.scrollTop = elem.scrollHeight;
+                        }
+                    })
+                });
+        }, 10000);
+
         function camera_status() {
             let text = $('#messages').contents().find('#text').text().toLowerCase();
             return text.includes('camera') ? text.includes('on') : undefined;
@@ -264,6 +266,26 @@
                                                 class="fas fa-trash-alt"></i></a>{% endif %}</td>
                                 </tr>
                             {% endfor %}
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
                             </tbody>
                         </table>
                     </div>
@@ -272,11 +294,10 @@
             </tbody>
         </table>
     </article>
-    {## <article style="padding: 10px;height: 50%">
+    <article style="padding: 10px;height: 50%">
         <h2>Console</h2>
         <div id="output" class="console"></div>
-        <iframe id="send" name="send" style="border: none;width: 100%;" src="{{ url_for('send_command') }}"></iframe>
-    </article> #}
+    </article>
     <div id="popup" class="modal">
         <!-- Modal content -->
         <div class="modal-content" style="width: 25%; height: 25%">

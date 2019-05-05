@@ -24,6 +24,7 @@ aside {
 main {
     overflow-y: scroll;
     width: 60%;
+    height: 95.05%;
     position: relative;
     float: left;
     min-width: 700px;
