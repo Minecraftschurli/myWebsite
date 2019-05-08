@@ -79,3 +79,8 @@ body > footer {
     margin-left: 10%;
     font-size: larger;
 }
+
+.responsive {
+    height: auto;
+    width: 100%;
+}

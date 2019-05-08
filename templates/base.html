@@ -73,12 +73,18 @@
 <div class="flexbox">
     <aside style="float: left">{% block aside_left %}{% endblock %}</aside>
     <main>
-        {% for message in messages %}
-            <div class="notification {{ message['type'] }}">
-                <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-                <strong>{{ message['head'] }}</strong> {{ message['text'] }}
-            </div>
-        {% endfor %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% with message = message %}
+                        <div class="notification {{ category }}">
+                            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                            <strong>{{ message['head'] }}</strong> {{ message['text'] }}
+                        </div>
+                    {% endwith %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         {% block content %}{% endblock %}
     </main>
     <aside style="float: left">{% block aside_right %}{% endblock %}</aside>

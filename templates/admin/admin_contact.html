@@ -97,12 +97,13 @@
                 <th></th>
             </tr>
             {% for msg in contact %}
-                <tr onclick="document.getElementById('popup{{ msg['id'] }}').style.display = 'block'">
-                    <td>{{ msg['userdata']['firstname'] }}</td>
-                    <td>{{ msg['userdata']['lastname'] }}</td>
-                    <td>{{ msg['userdata']['email'] }}</td>
-                    <td>{{ msg['subject'] }}</td>
-                    <td><a style="text-decoration: none; font-size: 150%; color: red; padding-top: 0; padding-bottom: 0" href="{{ url_for('contact', remove=msg['id']) }}" methods="post">{{ "\u00D7" }}</a></td>
+                <tr onclick="document.getElementById('popup{{ msg.id }}').style.display = 'block'">
+                    <td>{{ msg.first_name }}</td>
+                    <td>{{ msg.last_name }}</td>
+                    <td>{{ msg.email }}</td>
+                    <td>{{ msg.subject }}</td>
+                    <td><a style="text-decoration: none; font-size: 150%; color: red; padding-top: 0; padding-bottom: 0"
+                           href="{{ url_for('contact', remove=msg.id) }}" methods="post">{{ "\u00D7" }}</a></td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -110,16 +111,16 @@
     </article>
     <div>
         {% for msg in contact %}
-            <div id="popup{{ msg['id'] }}" class="modal">
+            <div id="popup{{ msg.id }}" class="modal">
                 <!-- Modal content -->
                 <div class="modal-content">
                     <div class="modal-header">
                         <span class="close"
-                              onclick="document.getElementById('popup{{ msg['id'] }}').style.display = 'none';">&times;</span>
-                        <h2>{{ msg['subject'] }}</h2>
+                              onclick="document.getElementById('popup{{ msg.id }}').style.display = 'none';">&times;</span>
+                        <h2>{{ msg.subject }}</h2>
                     </div>
                     <div class="modal-body">
-                        <p>{{ msg['message'] }}</p>
+                        <p>{{ msg.message }}</p>
                     </div>
                 </div>
             </div>

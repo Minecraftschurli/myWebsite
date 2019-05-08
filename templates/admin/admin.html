@@ -2,47 +2,79 @@
 {% block title %}Admin{% endblock %}
 {% block head %}
     <style>
-        .user_list {
-            border: 0;
-            border-collapse: collapse;
-            border-spacing: 0;
-            width: 100%;
+        html > body tbody.scrollContent {
             display: block;
-            overflow-y: auto;
+            height: 262px;
+            overflow: auto;
+            width: 100%
         }
 
-        .user_list th, .user_list td {
+        html > body thead.fixedHeader {
+            display: table;
+            overflow: auto;
+            width: 100%
+        }
+
+        thead.fixedHeader tr {
+            position: relative;
+        }
+
+        html > body div.tableContainer {
+            overflow-y: hidden;
+        }
+
+        .scrollTable {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .scrollTable th, .scrollTable td {
             text-align: left;
             padding: 8px;
         }
 
-        .user_list tr {
-            height: 2.3em
+        .scrollTable tr {
+            height: 2.3em;
+            width: 100%;
         }
 
-        .user_list tr:hover[onclick], .control > *:hover {
+        .scrollTable tr:hover[onclick], .control > *:hover {
             cursor: pointer;
             opacity: 0.75;
         }
 
-        .user_list tr:nth-child(even), .user_list tr:nth-child(even) * {
+        .scrollTable tr:nth-child(even), .scrollTable tr:nth-child(even) * {
             background-color: #a3a3a3
         }
 
-        .user_list tr:nth-child(odd), .user_list tr:nth-child(odd) * {
+        .scrollTable tr:nth-child(odd), .scrollTable tr:nth-child(odd) * {
             background-color: #f2f2f2
         }
 
-        .user_list td:nth-child(1) {
-            width: 10%
+        .scrollTable td:nth-child(1), .scrollTable th:nth-child(1) {
+            width: 22%
         }
 
-        .user_list td:nth-child(2) {
-            width: 35%
+        .scrollTable td:nth-child(2), .scrollTable th:nth-child(2) {
+            border-left: 1px black solid;
+            width: 75%
         }
 
-        .user_list td:nth-child(3) {
-            width: 3%
+        .scrollTable td:nth-child(3), .scrollTable th:nth-child(3) {
+            width: 1%
+        }
+
+        table.scrollTable > tbody > tr > td > form > button {
+            border: none;
+            padding: 0;
+            text-decoration: none;
+            font-size: 100%;
+            text-align: right;
+            color: red;
+        }
+
+        table.scrollTable > tbody > tr > td > form > button:hover {
+            cursor: pointer;
         }
 
         .console, .console * {
@@ -160,6 +192,60 @@
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
     <script>
+        function sortTable(n) {
+            var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+            table = document.getElementById("users");
+            switching = true;
+            // Set the sorting direction to ascending:
+            dir = "asc";
+            /* Make a loop that will continue until
+            no switching has been done: */
+            while (switching) {
+                // Start by saying: no switching is done:
+                switching = false;
+                rows = table.rows;
+                /* Loop through all table rows (except the
+                first, which contains table headers): */
+                for (i = 1; i < (rows.length - 1); i++) {
+                    // Start by saying there should be no switching:
+                    shouldSwitch = false;
+                    /* Get the two elements you want to compare,
+                    one from current row and one from the next: */
+                    x = rows[i].getElementsByTagName("TD")[n];
+                    y = rows[i + 1].getElementsByTagName("TD")[n];
+                    /* Check if the two rows should switch place,
+                    based on the direction, asc or desc: */
+                    if (dir == "asc") {
+                        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                            // If so, mark as a switch and break the loop:
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir == "desc") {
+                        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                            // If so, mark as a switch and break the loop:
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+                if (shouldSwitch) {
+                    /* If a switch has been marked, make the switch
+                    and mark that a switch has been done: */
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    // Each time a switch is done, increase this count by 1:
+                    switchcount++;
+                } else {
+                    /* If no switching has been done AND the direction is "asc",
+                    set the direction to "desc" and run the while loop again. */
+                    if (switchcount == 0 && dir == "asc") {
+                        dir = "desc";
+                        switching = true;
+                    }
+                }
+            }
+        }
         setInterval(() => {
             fetch("{{ url_for('console') }}")
                 .then(response => {
@@ -167,11 +253,15 @@
                         let data = JSON.parse(t);
                         let elem = document.getElementById("output");
                         for (let i = 0; i < data.content.length; i++) {
+                            if (data.content[i] === '' || data.content[i] === '\n') continue;
                             elem.innerHTML += data.content[i] + "<br/>";
                             elem.scrollTop = elem.scrollHeight;
                         }
                     })
                 });
+            let elem = document.getElementById("output");
+            elem.innerHTML = elem.innerHTML.replace("<br/>\n<br/>\n", '');
+            elem.scrollTop = elem.scrollHeight;
         }, 10000);
 
         function camera_status() {
@@ -205,26 +295,36 @@
     </script>
 {% endblock %}
 {% block content %}
-    <iframe style="border: none; width: 100%; height: 0" id="messages" name="messages" onload="f();"></iframe>
     <article>
         <h2>Controls</h2>
-        <form class="control" target="messages" action="{{ url_for('admin_commands', command='reload_user') }}"
+        {# <form class="control" action="{{ url_for('admin_commands', command='reload_user') }}"
               method="post">
             <button type="submit" style="float: left">Reload User</button>
-        </form>
-        <form class="control" target="messages" action="{{ url_for('admin_commands', command='reload_config') }}"
+        </form> #}
+        {# <form class="control" action="{{ url_for('admin_commands', command='reload_config') }}"
               method="post">
             <button type="submit" style="float: left">Reload Config</button>
-        </form>
-        <form class="control" target="messages" action="{{ url_for('admin_commands', command='toggle_camera') }}"
-              method="post">
-            <div style="float: left;" onclick="document.getElementById('cam').click()">
+        </form> #}
+        <form class="control" action="{{ url_for('admin_commands', command='toggle_camera') }}" method="post">
+            <div style="float: left;" onclick="document.getElementById('cam1').click()">
                 <div style="vertical-align: text-top;border: none;">
                     <span style="font-size: 15px;border: none;padding-left: 2px">Camera</span>
                 </div>
                 <label class="switch">
-                    <input type="checkbox" id="cam" onchange="this.form.submit();"
-                           {% if config['camera'] %}checked{% endif %}/>
+                    <input type="checkbox" id="cam1" onchange="this.form.submit();"
+                           {% if config['camera']['status'] %}checked{% endif %}/>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </form>
+        <form class="control" action="{{ url_for('admin_commands', command='toggle_detect') }}" method="post">
+            <div style="float: left;" onclick="document.getElementById('cam2').click()">
+                <div style="vertical-align: text-top;border: none;">
+                    <span style="font-size: 15px;border: none;padding-left: 2px">Face detect</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="cam2" onchange="this.form.submit();"
+                           {% if config['camera']['toggle_detect'] %}checked{% endif %}/>
                     <span class="slider round"></span>
                 </label>
             </div>
@@ -232,47 +332,36 @@
     </article>
     <article>
         <h2>Users</h2>
-        <table style="width: 100%;row-gap: 0;border: 0;border-collapse: collapse;border-spacing: 0;">
-            <tbody>
-            <tr>
-                <td style="padding: 0;margin: 0;">
-                    <table style="width: 100%;padding: 0;background-color: #a3a3a3;border: 0;border-collapse: collapse;border-spacing: 0;">
-                        <tbody>
-                        <tr style="height: 2.3em">
-                            <th style="background-color: #a3a3a3;width: 10%">User</th>
-                            <th style="background-color: #a3a3a3;width: 35%">Permissions</th>
-                            <th style="background-color: #a3a3a3;width: 3%"><i class="fas fa-trash-alt" style="visibility: hidden;"></i></th>
-                        </tr>
-                        </tbody>
-                    </table>
-                </td>
-            </tr>
-            <tr>
-                <td style="padding: 0;margin: 0">
-                    <div style="height: 24em;position: relative;width: 100%;display: grid">
-                        <table class="user_list" style="position: relative">
-                            <tbody>
-                            {% for _, user in users %}
-                                <tr style="height: 30px" {% if user.username != "admin" %}onclick="
-                                        document.getElementById('username').value = '{{ user.username }}';
-                                        document.getElementById('uname').innerText = '{{ user.username }}';
-                                        document.getElementById('permissions').value = '{{ user.permissions|join(', ') }}';
-                                        document.getElementById('popup').style.display = 'block';"{% endif %}>
-                                    <td>{{ user.username }}</td>
-                                    <td>{{ user.permissions }}</td>
-                                    <td style="padding: 0;">{% if user.username != "admin" %}
-                                        <a style="text-decoration: none; font-size: 100%; text-align: right; color: red;"
-                                           href="{{ url_for('admin_commands', command='remove_user', param=(user.username|string)) }}"><i
-                                                class="fas fa-trash-alt"></i></a>{% endif %}</td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <div id="tableContainer" class="tableContainer">
+            <table class="scrollTable" id="users"
+                    {#style="width: 100%;row-gap: 0;border: 0;border-collapse: collapse;border-spacing: 0;"#}>
+                <thead class="fixedHeader"
+                        {#style="position: relative;text-align: center;background-color: #a3a3a3;display: table"#}>
+                <tr style="height: 2.3em">
+                    <th onclick="sortTable(0)" style="background-color: #a3a3a3">User</th>
+                    <th style="width: 74.6%;background-color: #a3a3a3">Permissions</th>
+                    <th style="background-color: #a3a3a3"><i class="fas fa-trash-alt" style="visibility: hidden;"></i>
+                    </th>
+                </tr>
+                </thead>
+                <tbody class="scrollContent" {#style="position: relative"#}>
+                {% for user in users %}
+                    <tr style="height: 2.3em" {% if user.username != "admin" %}onclick="
+                            document.getElementById('username').value = '{{ user.username }}';
+                            document.getElementById('uname').innerText = '{{ user.username }}';
+                            document.getElementById('permissions').value = '{{ user.permissions }}';
+                            document.getElementById('popup').style.display = 'block';"{% endif %}>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.permissions }}</td>
+                        <td>{% if user.username != "admin" %}
+                            <form action="{{ url_for('admin_commands', param=(user.username|string)) }}" method="post">
+                                <button type="submit"><i class="fas fa-trash-alt"></i></button>
+                            </form>{% endif %}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </article>
     <article style="padding: 10px;height: 50%">
         <h2>Console</h2>
@@ -285,7 +374,8 @@
                 <span class="close" onclick="document.getElementById('popup').style.display = 'none';">&times;</span>
             </div>
             <div class="modal-body" style="margin: 0 auto;height: 100%">
-                <form action="{{ url_for('admin', command='edit_user_permissions') }}" method="post" id="add_user">
+                <form action="{{ url_for('admin_commands', command='edit_user_permissions') }}" method="post"
+                      id="add_user">
                     <p>
                         <label for="username">Username: <span id="uname"></span></label><br/>
                         <input id="username" type="text" name="username" hidden/>

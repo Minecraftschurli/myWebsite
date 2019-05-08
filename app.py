@@ -9,15 +9,13 @@ from urllib.parse import urlparse, urljoin
 import requests
 from flask import *
 from flask_bcrypt import *
-from flask_login import LoginManager, login_required, current_user, login_user, logout_user
+from flask_login import LoginManager, login_required, current_user, login_user, logout_user, UserMixin
+from flask_sqlalchemy import SQLAlchemy
 
+from libs import VideoCamera
 from libs import adresslistenGenerator
-from libs.__init__ import User, ShootItData, VideoCamera
 
 app = Flask(__name__)
-
-bcrypt = Bcrypt(app)
-login_manager = LoginManager(app)
 
 configs = dict()
 
@@ -36,22 +34,24 @@ def save_config():
 
 load_config()
 
+app.config['USE_SESSION_FOR_NEXT'] = configs['USE_SESSION_FOR_NEXT']
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = configs['SQLALCHEMY_TRACK_MODIFICATIONS']
+app.config['SQLALCHEMY_DATABASE_URI'] = configs['SQLALCHEMY_DATABASE_URI']
+
+bcrypt = Bcrypt(app)
+login_manager = LoginManager(app)
+db = SQLAlchemy(app)
+
+
 app.secret_key = bytes(configs['secret_key'], 'UTF-8')
 login_manager.login_view = 'login'
-app.config['USE_SESSION_FOR_NEXT'] = True
 
 routes = [""]
 cams = [0]
 
-testfile = './log.txt'
-last_size = getsize(testfile)
-
-shootit_data = ShootItData()
-
-users = dict()
+logfile = './log.txt'
 
 cur_size = 0
-ip_blacklist = []
 
 nav = [("Home", "/", "any", False),
        ("Projects", [
@@ -71,7 +71,140 @@ nav = [("Home", "/", "any", False),
        ("Admin", "/admin", "all", False)]
 
 
-# functions
+#
+class User(UserMixin, db.Model):
+    __tablename__ = 'users'
+
+    username = db.Column(db.String(100), primary_key=True)  # primary keys are required by SQLAlchemy
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    last_name = db.Column(db.String(100), nullable=False)
+    first_name = db.Column(db.String(100), nullable=False)
+    permissions = db.Column(db.String(1000), nullable=False)
+    password_hash = db.Column(db.String(1000), nullable=False)
+
+    def get_id(self):
+        return self.username
+
+    def has_permission(self, permission):
+        if permission is "any":
+            return True
+        permissions = self.permissions.split(', ')
+        if "all" in permissions:
+            return True
+        if isinstance(permission, tuple):
+            for p in permission:
+                if p in permissions:
+                    return True
+        else:
+            return permission in permissions
+        return False
+
+    def authenticate(self, password):
+        return bcrypt.check_password_hash(self.password_hash.encode('utf-8'), password)
+
+    def to_dict(self):
+        return {
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "username": self.username,
+            "password_hash": self.password_hash,
+            "email": self.email,
+            "permissions": self.permissions
+        }
+
+
+class IPBlacklist(db.Model):
+    __tablename__ = 'ip_blacklist'
+
+    ip = db.Column(db.String(15), primary_key=True, nullable=False)
+
+
+class Contact(db.Model):
+    __tablename__ = 'contact'
+
+    id = db.Column(db.Integer(), primary_key=True, autoincrement=True)
+    subject = db.Column(db.String(100), nullable=False)
+    message = db.Column(db.Text(), nullable=False)
+    first_name = db.Column(db.String(100), nullable=False)
+    last_name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), nullable=False)
+
+
+class ShootItData:
+    class PerUser(db.Model):
+        __tablename__ = 'shoot_it_data'
+
+        username = db.Column(db.String(100), primary_key=True)
+        score_easy = db.Column(db.Integer(), nullable=False)
+        score_medium = db.Column(db.Integer(), nullable=False)
+        score_hard = db.Column(db.Integer(), nullable=False)
+        score_impossible = db.Column(db.Integer(), nullable=False)
+        linked = db.Column(db.Boolean(), nullable=False)
+
+        def __getitem__(self, item):
+            return {
+                'username': self.username,
+                'easy': self.score_easy,
+                'medium': self.score_medium,
+                'hard': self.score_hard,
+                'impossible': self.score_impossible,
+                'linked': self.linked
+            }.get(item.lower(), None)
+
+    @staticmethod
+    def get_data_for_user(user):
+        user = ShootItData.PerUser.query.filter_by(username=user).first()
+        if user:
+            return user
+        return None
+
+    @staticmethod
+    def get_anonymus_user(user):
+        user = ShootItData.PerUser.query.filter_by(username=user).first()
+        if user:
+            return user
+        return None
+
+    @staticmethod
+    def user_exists(user):
+        user = ShootItData.PerUser.query.filter_by(username=user).first()
+        if user:
+            return True
+        return False
+
+    @staticmethod
+    def create_and_get_user(user, **kwargs):
+        link = 'assoc' in kwargs and kwargs['assoc'] is not None
+        if link:
+            user = kwargs['assoc']
+        elif user is None:
+            return None
+        new_user = ShootItData.PerUser(username=user, score_easy=0, score_medium=0, score_hard=0, score_impossible=0,
+                                       linked=link)
+        db.session.add(new_user)
+        db.session.commit()
+        return ShootItData.get_anonymus_user(user)
+
+    @staticmethod
+    def get_highscores(difficulty, length=10):
+        out = []
+        dat = ShootItData.PerUser.query.filter(ShootItData.PerUser.username.isnot('dummy')).order_by(
+            ShootItData.PerUser.username).limit(length).all()
+        for x in dat:
+            out.append((x.username, x[difficulty]))
+        return out
+
+    @staticmethod
+    def update(username, difficulty, score):
+        user = ShootItData.PerUser.query.get(username)
+        if user:
+            user[difficulty] = score
+
+
+shootit_data = ShootItData()
+
+
+# decorators
 def permission_required(permission='any'):
     def decorator(func):
         if permission is not 'any':
@@ -83,9 +216,7 @@ def permission_required(permission='any'):
                 return func(*args, **kwargs)
             else:
                 return login_manager.unauthorized()
-
         return wrapper
-
     return decorator
 
 
@@ -96,16 +227,22 @@ def check_ip(func):
             return func(*args, **kwargs)
         else:
             abort(423)
-
     return wrapper
 
 
+# functions
 def blacklist_ip(ip_addr):
-    ip_blacklist.append(ip_addr)
+    new_bl_ip = IPBlacklist(ip=ip_addr)
+    db.session.add(new_bl_ip)
+    db.session.commit()
 
 
 def _check_ip():
-    return request.remote_addr not in ip_blacklist
+    result = IPBlacklist.query.filter_by(ip=request.remote_addr).first()
+    if result:
+        return False
+    else:
+        return True
 
 
 def get_nav(name):
@@ -146,49 +283,41 @@ def valid_login(name, password):
 def add_user(fname, lname, name, password, email, permissions=None):
     if permissions is None:
         permissions = list()
-    if name not in users:
-        if email == (name + '@student.tgm.ac.at') and not ('school' in permissions):
-            permissions.append('school')
-        users[name] = User(fname, lname, name, bcrypt.generate_password_hash(password).decode('utf-8'), email,
-                           permissions)
-        return True
-    else:
-        return False
+
+    if User.query.filter_by(email=email).first():
+        return False, 'email'
+    elif User.query.filter_by(username=name).first():
+        return False, 'username'
+
+    if email == (name + '@student.tgm.ac.at') and not ('school' in permissions):
+        permissions.append('school')
+    # noinspection PyArgumentList
+    new_user = User(first_name=fname, last_name=lname, username=name,
+                    password_hash=bcrypt.generate_password_hash(password).decode('utf-8'), email=email,
+                    permissions=', '.join(permissions))
+    # add the new user to the database
+    db.session.add(new_user)
+    db.session.commit()
+    return True, None
 
 
-def remove_user(user):
-    if user in users:
-        users.pop(user)
+def remove_user(name):
+    user = User.query.get(name)
+    if user:
+        db.session.delete(user)
+        db.session.commit()
         return True
     return False
 
 
 def valid_user(user):
-    return user is not None and user is not "" and user in users
+    return user is not None and user is not "" and User.query.get(user)
 
 
 def is_safe_url(target):
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
     return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
-
-
-def load_users():
-    global users
-    with open(configs['users'], 'r') as users_file:
-        json_array = json.load(users_file)
-        user_tmp = dict()
-        for user in json_array:
-            user_tmp[user['username']] = User.from_dict(user)
-        users = user_tmp.copy()
-
-
-def save_users():
-    with open(configs['users'], 'w') as users_file:
-        data = list()
-        for _, user in users.items():
-            data.append(user.to_dict())
-        json.dump(data, users_file, indent=4)
 
 
 # auth
@@ -208,7 +337,7 @@ def login_post():
     # check if user actually exists
     # take the user supplied password, hash it, and compare it to the hashed password in database
     if not valid_login(request.form['username'], request.form['password']):
-        flash('Please check your login details and try again.')
+        flash({'text': 'Please check your login details and try again.', 'head': 'Error!'}, 'alert')
         return redirect(url_for('login'))  # if user doesn't exist or password is wrong, reload the page
 
     # if the above check passes, then we know the user has the right credentials
@@ -231,20 +360,26 @@ def signup():
 @app.route('/signup', methods=['POST'])
 @check_ip
 def signup_post():
+    code = None
     if not ('email' in request.form and request.form['email']):
-        code = "No email"
-    elif not ('username' in request.form and request.form['username'] not in users):
-        code = "User already exists"
+        code = "No email!"
     elif not ('password' in request.form and 'password-repeat' in request.form and request.form['password'] ==
               request.form['password-repeat']):
-        code = "Passwords do not match"
+        code = "Passwords do not match!"
     else:
-        add_user(request.form['firstname'], request.form['lastname'], request.form['username'],
-                 request.form['password'], request.form['email'])
-        save_users()
-        load_users()
-        return redirect(url_for('login'))
-    return render_with_nav('signup', code=code)
+        ret, c = add_user(request.form['firstname'], request.form['lastname'], request.form['username'],
+                          request.form['password'], request.form['email'])
+        if not ret:
+            if not ('username' in request.form and c is 'username'):
+                code = "A User with this Username already exists!"
+            elif not (c is 'email'):
+                code = "Only one Account per Email is allowed!"
+        else:
+            # save_users()
+            # load_users()
+            return redirect(url_for('login'))
+    flash({'head': 'Error!', 'text': code}, 'alert')
+    return render_with_nav('signup')
 
 
 @app.route('/logout')
@@ -259,7 +394,6 @@ def logout():
 @app.route('/games/shootit')
 @check_ip
 def shootit():
-    shootit_data.refresh()
     if not current_user.is_anonymous:
         data = shootit_data.get_data_for_user(current_user.username)
         if data is None:
@@ -285,7 +419,6 @@ def itboy():
 @app.route('/static/games/shootit/GetOrCreateUserProfile', methods=["POST"])
 @check_ip
 def get_or_create_user_profile(opt=""):
-    shootit_data.refresh()
     c = False
     new = False
     if not current_user.is_anonymous:
@@ -302,7 +435,15 @@ def get_or_create_user_profile(opt=""):
         c = True
     else:
         data = {}
-    shootit_data.refresh()
+    if isinstance(data, ShootItData.PerUser):
+        data = {
+            'username': data.username,
+            'easy': data.score_easy,
+            'medium': data.score_medium,
+            'hard': data.score_hard,
+            'impossible': data.score_impossible,
+            'linked': data.linked
+        }
     return jsonify(**data, check=c, new=new)
 
 
@@ -339,56 +480,70 @@ def index():
 @permission_required('all')
 @check_ip
 def admin():
-    sorted_users = []
-    for key in sorted(users.keys(), key=lambda x: x.lower()):
-        sorted_users.append((key, users[key]))
-    return render_with_nav('admin/admin', users=sorted_users, config=configs)
+    users = User.query.all()
+    users = [u for u in sorted(users, key=lambda x: x.username.lower())]
+    return render_with_nav('admin/admin', users=users, config=configs)
 
 
 @app.route('/admin/<command>', methods=['POST', 'GET'])
 @app.route('/admin/remove_user/<param>', methods=['POST', 'GET'])
 @permission_required(permission='all')
 @check_ip
-def admin_commands(command='', param=''):
+def admin_commands(command='remove_user', param=''):
     messages = []
 
-    def reload_user(_=None):
-        save_users()
-        load_users()
-        messages.append({'type': 'success', 'text': 'reloaded users', 'head': 'Success!'})
+    # def reload_user(_=None):
+    #     save_users()
+    #     load_users()
+    #     messages.append({'type': 'success', 'text': 'reloaded users', 'head': 'Success!'})
 
     def edit_user_permissions(_=None):
-        if 'username' in request.form and 'permissions' in request.form and request.form['username'] in users:
-            users[request.form['username']].permissions = str(request.form['permissions']).split(', ')
-            reload_user()
-        messages.append({'type': 'success', 'text': 'edit user permissions', 'head': 'Success!'})
+        user = User.query.get(request.form['username'])
+        if 'username' in request.form and 'permissions' in request.form and user:
+            user.permissions = ', '.join(str(request.form['permissions']).splitlines())
+            # reload_user()
+            db.session.commit()
+        messages.append(
+            {'type': 'success', 'text': 'Edited user permissions for user: ' + user.username, 'head': 'Success!'})
 
     def toggle_camera(_=None):
-        configs['camera'] = (not configs['camera'])
+        configs['camera']['status'] = (not configs['camera']['status'])
         messages.append(
-            {'type': 'success', 'text': 'turned camera ' + ('on' if configs['camera'] else 'off'), 'head': 'Success!'})
+            {'type': 'success', 'text': 'Turned camera ' + ('on' if configs['camera']['status'] else 'off') + '!',
+             'head': 'Success!'})
+
+    def toggle_detect(_=None):
+        configs['camera']['use_detect'] = (not configs['camera']['use_detect'])
+        messages.append({'type': 'success', 'text': 'Turned camera face detection ' + (
+            'on' if configs['camera']['use_detect'] else 'off') + '!', 'head': 'Success!'})
 
     def reload_config(_=None):
         save_config()
         load_config()
-        messages.append({'type': 'success', 'text': 'reloaded config', 'head': 'Success!'})
+        messages.append({'type': 'success', 'text': 'Reloaded config!', 'head': 'Success!'})
 
     def nothing(_=None):
         pass
 
     def _remove_user(user):
-        remove_user(user)
-        reload_user()
-        messages.append({'type': 'success', 'text': 'removed user', 'head': 'Success!'})
+        if remove_user(user):
+            messages.append({'type': 'success', 'text': 'removed user', 'head': 'Success!'})
+        else:
+            messages.append({'type': 'alert', 'text': 'removed user', 'head': 'Fail!'})
 
     {
-        "reload_user": reload_user,
+        # "reload_user": reload_user,
         "edit_user_permissions": edit_user_permissions,
         "remove_user": _remove_user,
         "toggle_camera": toggle_camera,
-        "reload_config": reload_config
+        "toggle_detect": toggle_detect,
+        # "reload_config": reload_config
     }.get(command, nothing)(param)
-    return render_template("admin/admin_messages.html", messages=messages)
+    for m in messages:
+        m_type = m['type']
+        m.pop('type')
+        flash(m, m_type)
+    return redirect(url_for('admin'))
 
 
 @app.route('/adr_gen', methods=['POST', 'GET'])
@@ -438,7 +593,7 @@ def sx():
 @permission_required('camera')
 @check_ip
 def cam():
-    if configs['camera']:
+    if configs['camera']['status']:
         return render_with_nav('cam')
     else:
         abort(404)
@@ -454,10 +609,10 @@ def countdown():
 @permission_required('camera')
 @check_ip
 def video_feed(cam_id='0'):
-    if (not configs['camera']) or (not cam_id.isnumeric()) or (int(cam_id) not in cams):
+    if (not configs['camera']['status']) or (not cam_id.isnumeric()) or (int(cam_id) not in cams):
         abort(404)
     """Video streaming route. Put this in the src attribute of an img tag."""
-    video_cameras = [VideoCamera('0', use_detection=False)]
+    video_cameras = [VideoCamera('0', use_detection=configs['camera']['use_detect'])]
 
     def gen_camera(camera):
         """Video streaming generator function."""
@@ -475,10 +630,10 @@ def video_feed(cam_id='0'):
 @check_ip
 def console():
     global last_size, cur_size
-    cur_size = getsize(testfile)
+    cur_size = getsize(logfile)
     data = {'content': []}
     if cur_size != last_size:
-        with open(testfile, 'r') as f:
+        with open(logfile, 'r') as f:
             f.seek(last_size if cur_size > last_size else 0)
             text = f.read()
             f.close()
@@ -498,39 +653,45 @@ def console():
 def contact(remove=-1):
     messages = []
     if check_permission('all'):
-        with open('./contact.json', 'r+') as file:
-            json_obj = json.load(file)
-            if len(json_obj) > int(remove) >= 0:
-                json_obj.pop(int(remove))
-                file.seek(0)
-                json.dump(json_obj, file, indent=2)
-                messages.append({'type': 'success', 'head': 'Success!', 'text': 'removed message'})
-            return render_with_nav('admin/admin_contact', contact=json_obj, messages=messages)
+        msgs = Contact.query.all()
+        if len(msgs) >= int(remove) > 0:
+            db.session.delete(Contact.query.get(int(remove)))
+            db.session.commit()
+            messages.append({'type': 'success', 'head': 'Success!', 'text': 'Deleted message!'})
+            for m in messages:
+                m_type = m['type']
+                m.pop('type')
+                flash(m, m_type)
+            return redirect(url_for('contact'))
+        for m in messages:
+            m_type = m['type']
+            m.pop('type')
+            flash(m, m_type)
+        return render_with_nav('admin/admin_contact', contact=msgs)
     message = {'type': 'success', 'text': '', 'head': 'Success!'}
     form = None
     if request.method == 'POST':
         try:
-            data = {'subject': request.form['subject'], 'message': request.form['message']}
+            data = {
+                'subject': request.form['subject'],
+                'message': request.form['message']
+            }
             if check_permission('any'):
-                user = current_user
-                user = user.to_dict()
-                user.pop('password')
+                user = current_user.to_dict()
+                user.pop('password_hash')
                 user.pop('permissions')
-                data['userdata'] = user
+                user.pop('username')
+                data.update(user)
             else:
-                data['userdata'] = {
-                    'firstname': request.form['firstname'],
-                    'lastname': request.form['lastname'],
+                data.update({
+                    'first_name': request.form['firstname'],
+                    'last_name': request.form['lastname'],
                     'email': request.form['email']
-                }
-            with open('./contact.json', 'r+') as f:
-                json_obj = json.load(f)
-                f.seek(0)
-                data['id'] = len(json_obj)
-                json_obj.append(data)
-                json.dump(json_obj, f, indent=2)
-                f.close()
-                message['text'] = 'Successfully sent'
+                })
+            new_contact_request = Contact(**data)
+            db.session.add(new_contact_request)
+            db.session.commit()
+            message['text'] = 'Successfully sent'
         except Exception:
             message['type'] = 'alert'
             message['head'] = 'Alert!'
@@ -539,8 +700,11 @@ def contact(remove=-1):
 
     if len(message['text']) > 0:
         messages.append(message)
-
-    return render_with_nav('contact', loggedin=check_permission('any'), messages=messages, form=form)
+    for m in messages:
+        m_type = m['type']
+        m.pop('type')
+        flash(m, m_type)
+    return render_with_nav('contact', loggedin=check_permission('any'), form=form)
 
 
 @app.route('/get_contact_msgs', methods=['POST'])
@@ -593,10 +757,10 @@ def where(name):
 
 @login_manager.user_loader
 def user_for_name(name: str) -> User:
-    return users.get(name, None)
+    return User.query.get(name)  # users.get(name, None)
 
 
-load_users()
+# load_users()
 
 if platform.system() is not 'Windows':
     import meinheld
@@ -624,6 +788,21 @@ class Logger(object):
 
 
 if __name__ == '__main__':
+    # db.create_all(app=app)
+
+    # with open(configs['users'], 'r') as users_file:
+    #     json_array = json.load(users_file)
+    #     for user in json_array:
+    #         if User.query.get(user['username']):
+    #             continue
+    #         user['permissions'] = ', '.join(user['permissions'])
+    #         new_user = User(**user)
+    #         print(new_user)
+    #         # add the new user to the database
+    #         db.session.add(new_user)
+    #         db.session.commit()
+
+
     def is_list(value):
         return isinstance(value, list)
 
@@ -631,8 +810,10 @@ if __name__ == '__main__':
     with open('./log.txt', "w"):
         pass
 
+    last_size = getsize(logfile)
+
     app.jinja_env.filters.update({
-        'is_list': is_list,
+        'is_list': is_list
     })
 
     sys.stderr = Logger(sys.stderr)
