@@ -55,6 +55,7 @@ coverage.xml
 *.log
 local_settings.py
 db.sqlite3
+db.sqlite
 
 # Flask stuff:
 instance/
@@ -104,4 +105,5 @@ venv.bak/
 .mypy_cache/
 
 # misc
-/install-opencv.sh
+install-opencv.sh
+log.txt
