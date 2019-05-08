@@ -104,6 +104,10 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+# jetbrains
+.idea/
+
 # misc
 install-opencv.sh
 log.txt
+users.json
