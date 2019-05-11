@@ -33,7 +33,7 @@
 {% endblock %}
 {% block content %}
     <article>
-        <form action="{{ url_for('contact') }}" method="post">
+        <form action="{{ url_for('main.contact') }}" method="post">
             <h2>Contact</h2>
             {% if not loggedin %}
                 <h4><label for="fname">First Name</label></h4>

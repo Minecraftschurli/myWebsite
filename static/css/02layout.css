@@ -24,10 +24,14 @@ aside {
 main {
     overflow-y: scroll;
     width: 60%;
-    height: 95.05%;
+    height: 100%;
     position: relative;
     float: left;
     min-width: 700px;
+}
+
+main > article {
+    padding: 10px;
 }
 
 body > footer {

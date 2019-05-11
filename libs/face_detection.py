@@ -1,8 +1,14 @@
+import platform
+
 from cv2 import cv2
 
 COLOR = {'WHITE': [255, 255, 255], 'BLUE': [255, 0, 0], 'GREEN': [0, 255, 0], 'RED': [0, 0, 255], 'BLACK': [0, 0, 0]}
 
-directory = "C:/Users/georg/PycharmProjects/website/libs" or "/home/pi/webapp/libs"
+if platform.system() is 'Linux':
+    directory = "/home/pi/webapp/libs"
+else:
+    directory = "C:/Users/georg/PycharmProjects/website/libs"
+
 
 modelFile = directory + "/models/opencv_face_detector_uint8.pb"
 configFile = directory + "/models/opencv_face_detector.pbtxt"

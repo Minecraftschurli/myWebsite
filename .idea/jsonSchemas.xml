@@ -15,6 +15,9 @@
                   <Item>
                     <option name="path" value="conf.json" />
                   </Item>
+                  <Item>
+                    <option name="path" value="nav.json" />
+                  </Item>
                 </list>
               </option>
             </SchemaInfo>

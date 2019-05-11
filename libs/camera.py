@@ -1,18 +1,13 @@
 import cv2
+from flask import Blueprint, Response, stream_with_context
 
+from libs import configuration
+from .decorators import *
+from .functions import *
 
-# if platform.system() is not 'Windows':
-#     DIR = '/home/pi/opencv-3.4.3/data/haarcascades/'
-# else:
-#     DIR = cv2.haarcascades
-#
-# upperbody_cascade = cv2.CascadeClassifier(DIR + 'haarcascade_upperbody.xml')
-# lowerbody_cascade = cv2.CascadeClassifier(DIR + 'haarcascade_lowerbody.xml')
-# fullbody_cascade = cv2.CascadeClassifier(DIR + 'haarcascade_fullbody.xml')
-# frontalface_cascade = cv2.CascadeClassifier(DIR + 'haarcascade_frontalface_alt.xml')
-# profileface_cascade = cv2.CascadeClassifier(DIR + 'haarcascade_profileface.xml')
-#
-# cascades = [upperbody_cascade, lowerbody_cascade, fullbody_cascade, frontalface_cascade, profileface_cascade]
+camera = Blueprint('camera', __name__)
+
+cams = [0]
 
 
 class VideoCamera(object):
@@ -41,20 +36,8 @@ class VideoCamera(object):
 
     def get_frame(self):
         _, image = self.video.read()
-        # We are using Motion JPEG, but OpenCV defaults to capture raw images,
-        # so we must encode it into JPEG in order to correctly display the
-        # video stream.
         if self.use_detection:
-            detects = []
-            # gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            # for detect in frontalface_cascade.detectMultiScale(gray, 1.1, 4):
-            #     detects.append(detect)
-            # for cascade in cascades:
-            #     for detect in cascade.detectMultiScale(gray, 1.1, 4):
-            #         detects.append(detect)
-            # for x, y, w, h in detects:
-            #     draw_box(image, x, y, w, h, COLOR['BLUE'])
-            from libs.other import detect_face_open_cv_dnn
+            from libs.face_detection import detect_face_open_cv_dnn
             image, detects = detect_face_open_cv_dnn(image)
             self.people_detected = len(detects) > 0
 
@@ -63,3 +46,33 @@ class VideoCamera(object):
 
     def get_people_detected(self):
         return self.people_detected
+
+
+@camera.route('/cam')
+@permission_required('camera')
+@check_ip
+def cam():
+    if configuration['camera']['status']:
+        return render_with_nav('cam')
+    else:
+        abort(404)
+
+
+@camera.route('/video_feed/<cam_id>')
+@permission_required('camera')
+@check_ip
+def video_feed(cam_id='0'):
+    if (not configuration['camera']['status']) or (not cam_id.isnumeric()) or (int(cam_id) not in cams):
+        abort(404)
+    """Video streaming route. Put this in the src attribute of an img tag."""
+    video_cameras = [VideoCamera('0', use_detection=configuration['camera']['use_detect'])]
+
+    def gen_camera(camera):
+        """Video streaming generator function."""
+        while True:
+            frame = camera.get_frame()
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+    return Response(stream_with_context(gen_camera(video_cameras[int(cam_id)])),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')

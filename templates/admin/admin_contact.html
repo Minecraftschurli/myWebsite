@@ -103,7 +103,7 @@
                     <td>{{ msg.email }}</td>
                     <td>{{ msg.subject }}</td>
                     <td><a style="text-decoration: none; font-size: 150%; color: red; padding-top: 0; padding-bottom: 0"
-                           href="{{ url_for('contact', remove=msg.id) }}" methods="post">{{ "\u00D7" }}</a></td>
+                           href="{{ url_for('main.contact', remove=msg.id) }}" methods="post">{{ "\u00D7" }}</a></td>
                 </tr>
             {% endfor %}
             </tbody>
