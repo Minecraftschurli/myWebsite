@@ -108,3 +108,4 @@ venv.bak/
 install-opencv.sh
 log.txt
 users.json
+conf.json
