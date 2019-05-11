@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" serverName="raspberrypi">
+    <serverData>
+      <paths name="raspberrypi">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/.idea" />
+            <excludedPath local="true" path="$PROJECT_DIR$/static/games/itboy/ITboy.psd" />
+            <excludedPath local="true" path="$PROJECT_DIR$/install-opencv.sh" />
+            <excludedPath local="true" path="$PROJECT_DIR$/log.txt" />
+            <excludedPath local="true" path="$PROJECT_DIR$/README.md" />
+            <excludedPath local="true" path="$PROJECT_DIR$/users.json" />
+            <excludedPath local="true" path="$PROJECT_DIR$/.gitignore" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>

@@ -7,7 +7,7 @@ directory = "C:/Users/georg/PycharmProjects/website/libs" or "/home/pi/webapp/li
 modelFile = directory + "/models/opencv_face_detector_uint8.pb"
 configFile = directory + "/models/opencv_face_detector.pbtxt"
 nn = cv2.dnn.readNetFromTensorflow(modelFile, configFile)
-conf_threshold = 0.6
+conf_threshold = 0.7
 
 
 def draw_box(image, x, y, w, h, color=None):

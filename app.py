@@ -12,38 +12,32 @@ from flask_bcrypt import *
 from flask_login import LoginManager, login_required, current_user, login_user, logout_user, UserMixin
 from flask_sqlalchemy import SQLAlchemy
 
-from libs import VideoCamera
 from libs import adresslistenGenerator
+from libs.camera import VideoCamera
 
 app = Flask(__name__)
-
-configs = dict()
 
 
 def load_config():
     with open('./conf.json', 'r') as conf:
+        configs = dict()
         json_obj = json.load(conf)
         for k, v in json_obj.items():
             configs[k] = v
+        return configs
 
 
-def save_config():
-    with open('./conf.json', 'w') as conf:
-        json.dump(configs, conf, indent=4)
+configuration = load_config()
 
-
-load_config()
-
-app.config['USE_SESSION_FOR_NEXT'] = configs['USE_SESSION_FOR_NEXT']
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = configs['SQLALCHEMY_TRACK_MODIFICATIONS']
-app.config['SQLALCHEMY_DATABASE_URI'] = configs['SQLALCHEMY_DATABASE_URI']
+app.config['USE_SESSION_FOR_NEXT'] = configuration['USE_SESSION_FOR_NEXT']
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = configuration['SQLALCHEMY_TRACK_MODIFICATIONS']
+app.config['SQLALCHEMY_DATABASE_URI'] = configuration['SQLALCHEMY_DATABASE_URI']
 
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 db = SQLAlchemy(app)
 
-
-app.secret_key = bytes(configs['secret_key'], 'UTF-8')
+app.secret_key = bytes(configuration['secret_key'], 'UTF-8')
 login_manager.login_view = 'login'
 
 routes = [""]
@@ -315,6 +309,8 @@ def valid_user(user):
 
 
 def is_safe_url(target):
+    if 'console' in target:
+        return False
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
     return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
@@ -332,7 +328,7 @@ def login():
 @app.route('/login', methods=['POST'])
 @check_ip
 def login_post():
-    remember = True if request.form['remember'] else False
+    remember = True if 'remember' in request.form and request.form['remember'] else False
 
     # check if user actually exists
     # take the user supplied password, hash it, and compare it to the hashed password in database
@@ -346,7 +342,7 @@ def login_post():
     # is_safe_url should check if the url is safe for redirects.
     # See http://flask.pocoo.org/snippets/62/ for an example.
     if not is_safe_url(next_page):
-        return abort(400)
+        return redirect(url_for('index'))
 
     return redirect(next_page or url_for('index'))
 
@@ -482,7 +478,7 @@ def index():
 def admin():
     users = User.query.all()
     users = [u for u in sorted(users, key=lambda x: x.username.lower())]
-    return render_with_nav('admin/admin', users=users, config=configs)
+    return render_with_nav('admin/admin', users=users, config=configuration)
 
 
 @app.route('/admin/<command>', methods=['POST', 'GET'])
@@ -492,35 +488,29 @@ def admin():
 def admin_commands(command='remove_user', param=''):
     messages = []
 
-    # def reload_user(_=None):
-    #     save_users()
-    #     load_users()
-    #     messages.append({'type': 'success', 'text': 'reloaded users', 'head': 'Success!'})
-
     def edit_user_permissions(_=None):
         user = User.query.get(request.form['username'])
         if 'username' in request.form and 'permissions' in request.form and user:
             user.permissions = ', '.join(str(request.form['permissions']).splitlines())
-            # reload_user()
             db.session.commit()
-        messages.append(
-            {'type': 'success', 'text': 'Edited user permissions for user: ' + user.username, 'head': 'Success!'})
+            messages.append(
+                {'type': 'success', 'text': 'Edited user permissions for user: ' + user.username, 'head': 'Success!'})
 
     def toggle_camera(_=None):
-        configs['camera']['status'] = (not configs['camera']['status'])
+        configuration['camera']['status'] = (not configuration['camera']['status'])
         messages.append(
-            {'type': 'success', 'text': 'Turned camera ' + ('on' if configs['camera']['status'] else 'off') + '!',
+            {'type': 'success', 'text': 'Turned camera ' + ('on' if configuration['camera']['status'] else 'off') + '!',
              'head': 'Success!'})
 
     def toggle_detect(_=None):
-        configs['camera']['use_detect'] = (not configs['camera']['use_detect'])
+        configuration['camera']['use_detect'] = (not configuration['camera']['use_detect'])
         messages.append({'type': 'success', 'text': 'Turned camera face detection ' + (
-            'on' if configs['camera']['use_detect'] else 'off') + '!', 'head': 'Success!'})
+            'on' if configuration['camera']['use_detect'] else 'off') + '!', 'head': 'Success!'})
 
-    def reload_config(_=None):
-        save_config()
-        load_config()
-        messages.append({'type': 'success', 'text': 'Reloaded config!', 'head': 'Success!'})
+    # def reload_config(_=None):
+    #     save_config()
+    #     load_config()
+    #     messages.append({'type': 'success', 'text': 'Reloaded config!', 'head': 'Success!'})
 
     def nothing(_=None):
         pass
@@ -532,7 +522,6 @@ def admin_commands(command='remove_user', param=''):
             messages.append({'type': 'alert', 'text': 'removed user', 'head': 'Fail!'})
 
     {
-        # "reload_user": reload_user,
         "edit_user_permissions": edit_user_permissions,
         "remove_user": _remove_user,
         "toggle_camera": toggle_camera,
@@ -593,7 +582,7 @@ def sx():
 @permission_required('camera')
 @check_ip
 def cam():
-    if configs['camera']['status']:
+    if configuration['camera']['status']:
         return render_with_nav('cam')
     else:
         abort(404)
@@ -609,10 +598,10 @@ def countdown():
 @permission_required('camera')
 @check_ip
 def video_feed(cam_id='0'):
-    if (not configs['camera']['status']) or (not cam_id.isnumeric()) or (int(cam_id) not in cams):
+    if (not configuration['camera']['status']) or (not cam_id.isnumeric()) or (int(cam_id) not in cams):
         abort(404)
     """Video streaming route. Put this in the src attribute of an img tag."""
-    video_cameras = [VideoCamera('0', use_detection=configs['camera']['use_detect'])]
+    video_cameras = [VideoCamera('0', use_detection=configuration['camera']['use_detect'])]
 
     def gen_camera(camera):
         """Video streaming generator function."""
@@ -787,7 +776,9 @@ class Logger(object):
         pass
 
 
-if __name__ == '__main__':
+def main():
+    global last_size
+
     # db.create_all(app=app)
 
     # with open(configs['users'], 'r') as users_file:
@@ -802,10 +793,8 @@ if __name__ == '__main__':
     #         db.session.add(new_user)
     #         db.session.commit()
 
-
     def is_list(value):
         return isinstance(value, list)
-
 
     with open('./log.txt', "w"):
         pass
@@ -823,3 +812,7 @@ if __name__ == '__main__':
         meinheld.run(app)
     else:
         app.run('0.0.0.0', 80, threaded=True, debug=True)
+
+
+if __name__ == '__main__':
+    main()

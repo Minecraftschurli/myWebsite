@@ -592,6 +592,9 @@ function setup() {
         player.setDead(false);
         complete = false;
         $('#menu').hide();
+        if ((levels.length > level + 1)) {
+            next.show();
+        }
     });
     let elem = $(document.body);
     elem.keydown(KeyDown);

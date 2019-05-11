@@ -264,11 +264,6 @@
             elem.scrollTop = elem.scrollHeight;
         }, 10000);
 
-        function camera_status() {
-            let text = $('#messages').contents().find('#text').text().toLowerCase();
-            return text.includes('camera') ? text.includes('on') : undefined;
-        }
-
         function f() {
             let elem = document.getElementById('messages');
             $(elem).css('height', $(elem.contentWindow.document.body).height());
@@ -282,15 +277,6 @@
                 }
             }
         }
-
-        $(document).ready(function () {
-            $('#messages').load(function () {
-                let status = camera_status();
-                if (status !== undefined) {
-                    document.getElementById('cam').checked = status;
-                }
-            });
-        });
 
     </script>
 {% endblock %}
@@ -324,7 +310,7 @@
                 </div>
                 <label class="switch">
                     <input type="checkbox" id="cam2" onchange="this.form.submit();"
-                           {% if config['camera']['toggle_detect'] %}checked{% endif %}/>
+                           {% if config['camera']['use_detect'] %}checked{% endif %}/>
                     <span class="slider round"></span>
                 </label>
             </div>
