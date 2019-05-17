@@ -3,7 +3,7 @@ import functools
 from flask import abort
 from flask_login import login_required
 
-from . import login_manager
+from libs import get_user_manager
 from .functions import check_permission, _check_ip
 
 
@@ -17,7 +17,7 @@ def permission_required(permission='any'):
             if (permission is 'login' or permission is 'any') or check_permission(permission):
                 return func(*args, **kwargs)
             else:
-                return login_manager.unauthorized()
+                return get_user_manager().login_manager.unauthorized()
 
         return wrapper
 

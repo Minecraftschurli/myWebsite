@@ -5,8 +5,6 @@ body {
 main {
     font-family: monospace;
     max-width: 800px !important;
-    /*width: 800px;*/
-    /*margin: 0 auto;*/
     background-color: #CCCCCC;
 }
 
@@ -117,3 +115,78 @@ aside {
     height: 100%;
     border: none;
 }
+
+html > body tbody.scrollContent {
+    display: block;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+html > body thead.fixedHeader {
+    display: table;
+    overflow: auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+thead.fixedHeader tr {
+    position: relative;
+}
+
+html > body div.tableContainer {
+    overflow-y: hidden;
+}
+
+.scrollTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.scrollTable th {
+    padding: 8px;
+}
+
+.scrollTable td {
+    text-align: left;
+    padding: 8px;
+}
+
+.scrollTable tr {
+    height: 2.6em;
+    width: 100%;
+    display: flex;
+}
+
+.scrollTable tr:hover[onclick], .control > *:hover {
+    cursor: pointer;
+    opacity: 0.75;
+}
+
+.scrollTable tr:nth-child(even), .scrollTable tr:nth-child(even) * {
+    background-color: #a3a3a3
+}
+
+.scrollTable tr:nth-child(odd), .scrollTable tr:nth-child(odd) * {
+    background-color: #f2f2f2
+}
+
+table.scrollTable > tbody > tr > td > form > button {
+    border: none;
+    padding: 0;
+    text-decoration: none;
+    font-size: 100%;
+    text-align: right;
+    color: red;
+}
+
+table.scrollTable > tbody > tr > td > form > button:hover {
+    cursor: pointer;
+}
+
+.signin {
+    background-color: #4f4f4f;
+    text-align: center;
+}
+

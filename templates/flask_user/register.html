@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% from "flask_user/_macros.html" import render_field, render_submit_field, render_nav %}
+{% block title %}Register{% endblock %}
+{% block nav %}
+    {{ render_nav(get_nav('register')) }}
+{% endblock %}
+{% block head %}
+    <style>
+        /* Style inputs with type="text", select elements and textareas */
+        input[type=text], input[type=email], input[type=password], textarea {
+            width: 100%; /* Full width */
+            padding: 12px; /* Some padding */
+            border: 1px solid #ccc; /* Gray border */
+            border-radius: 4px; /* Rounded borders */
+            box-sizing: border-box; /* Make sure that padding and width stays in place */
+            margin-top: 6px; /* Add a top margin */
+            margin-bottom: 16px; /* Bottom margin */
+            resize: vertical; /* Allow the user to vertically resize the textarea (not horizontally) */
+            background-color: #f9f9f9;
+        }
+
+        /* Style the submit button with a specific background color etc */
+        input[type=submit] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* When moving the mouse over the submit button, add a darker green color */
+        input[type=submit]:hover {
+            background-color: #45a049;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <article>
+        <h2>Register</h2>
+        <form action="" method="POST" novalidate formnovalidate class="form" role="form">
+            <div class="container">
+                {#<hr>
+
+                <p><label for="fname"><b>First Name</b></label><br/>
+                    <input type="text" id="fname" name="firstname" placeholder="Your name.." required/></p>
+
+                <p><label for="lname"><b>Last Name</b></label><br/>
+                    <input type="text" id="lname" name="lastname" placeholder="Your last name.." required/></p>
+
+                <p><label for="email"><b>Email</b></label><br/>
+                    <input type="email" id="email" name="email" placeholder="Enter email address" required></p>
+
+                <p><label for="username"><b>Username</b></label><br/>
+                    <input type="text" placeholder="Enter Username" name="username" id="username" required></p>
+
+                <p><label for="password"><b>Password</b></label><br/>
+                    <input type="password" placeholder="Enter Password" name="password" id="password" required></p>
+
+                <p><label for="password-repeat"><b>Repeat Password</b></label><br/>
+                    <input type="password" placeholder="Repeat Password" name="password-repeat" id="password-repeat"
+                           required></p>
+                <hr>
+                {% if code != None %}
+                    <p style="color: red">{{ code|e }}</p>
+                {% endif %}
+                <input type="submit" value="Register"/>#}
+
+                {{ render_field(form.first_name, tabindex=220) }}
+                {{ render_field(form.last_name, tabindex=220) }}
+
+                {{ form.hidden_tag() }}
+
+                {# Username or Email #}
+                {% set field = form.username if user_manager.USER_ENABLE_USERNAME else form.email %}
+                <div class="form-group {% if field.errors %}has-error{% endif %}">
+                    {# Label on left, "Already registered? Sign in." on right #}
+                    <div class="row">
+                        <div class="col-xs-6">
+                            <label for="{{ field.id }}" class="control-label">{{ field.label.text }}</label>
+                        </div>
+                    </div>
+                    {{ field(class_='form-control', tabindex=210) }}
+                    {% if field.errors %}
+                        {% for e in field.errors %}
+                            <p style="color: red">{{ e }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                {% if user_manager.USER_ENABLE_EMAIL and user_manager.USER_ENABLE_USERNAME %}
+                    {{ render_field(form.email, tabindex=220) }}
+                {% endif %}
+
+                {{ render_field(form.password, tabindex=230) }}
+
+                {% if user_manager.USER_REQUIRE_RETYPE_PASSWORD %}
+                    {{ render_field(form.retype_password, tabindex=240) }}
+                {% endif %}
+                {% if user_manager.USER_ENABLE_REGISTER %}
+                    <a href="{{ url_for('user.login') }}" tabindex='290'>
+                        {% trans %}Already registered? Sign in.{% endtrans %}</a>
+                    <br/>
+                {% endif %}
+                <br/>
+                {{ render_submit_field(form.submit, tabindex=280) }}
+            </div>
+        </form>
+    </article>
+{% endblock %}

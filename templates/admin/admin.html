@@ -2,79 +2,37 @@
 {% block title %}Admin{% endblock %}
 {% block head %}
     <style>
-        html > body tbody.scrollContent {
-            display: block;
-            height: 262px;
-            overflow: auto;
-            width: 100%
+        #users.scrollTable td:nth-child(1), #users.scrollTable th:nth-child(1) {
+            width: 27%
         }
 
-        html > body thead.fixedHeader {
-            display: table;
-            overflow: auto;
-            width: 100%
+        #users.scrollTable td:nth-child(2), #users.scrollTable th:nth-child(2) {
+            width: 70%;
+            border-left: solid;
         }
 
-        thead.fixedHeader tr {
-            position: relative;
+        #users.scrollTable td:nth-child(3), #users.scrollTable th:nth-child(3) {
+            width: 3%;
         }
 
-        html > body div.tableContainer {
-            overflow-y: hidden;
+        #roles.scrollTable td:nth-child(1), #roles.scrollTable th:nth-child(1) {
+            width: 90%;
         }
 
-        .scrollTable {
+        #roles.scrollTable td:nth-child(2), #roles.scrollTable th:nth-child(2) {
+            width: 10%;
+        }
+
+        #user-roles.scrollTable td, #user-roles.scrollTable th {
             width: 100%;
+            text-align: center;
+        }
+
+        table {
             border-collapse: collapse;
-        }
-
-        .scrollTable th, .scrollTable td {
-            text-align: left;
-            padding: 8px;
-        }
-
-        .scrollTable tr {
-            height: 2.3em;
+            border-spacing: 0;
             width: 100%;
-        }
-
-        .scrollTable tr:hover[onclick], .control > *:hover {
-            cursor: pointer;
-            opacity: 0.75;
-        }
-
-        .scrollTable tr:nth-child(even), .scrollTable tr:nth-child(even) * {
-            background-color: #a3a3a3
-        }
-
-        .scrollTable tr:nth-child(odd), .scrollTable tr:nth-child(odd) * {
-            background-color: #f2f2f2
-        }
-
-        .scrollTable td:nth-child(1), .scrollTable th:nth-child(1) {
-            width: 22%
-        }
-
-        .scrollTable td:nth-child(2), .scrollTable th:nth-child(2) {
-            border-left: 1px black solid;
-            width: 75%
-        }
-
-        .scrollTable td:nth-child(3), .scrollTable th:nth-child(3) {
-            width: 1%
-        }
-
-        table.scrollTable > tbody > tr > td > form > button {
-            border: none;
-            padding: 0;
-            text-decoration: none;
-            font-size: 100%;
-            text-align: right;
-            color: red;
-        }
-
-        table.scrollTable > tbody > tr > td > form > button:hover {
-            cursor: pointer;
+            border: 1px solid #ddd;
         }
 
         .console, .console * {
@@ -124,10 +82,6 @@
             border-radius: 20px;
             padding: 0;
             border: 1px solid var(--secondary-color);
-        }
-
-        article {
-            margin-bottom: 15px;
         }
 
         .switch {
@@ -188,6 +142,34 @@
 
         .slider.round:before {
             border-radius: 50%;
+        }
+
+        /* Style inputs with type="text", select elements and textareas */
+        form input[type=text], form input[type=email], form input[type=password], form textarea {
+            width: 100%; /* Full width */
+            padding: 12px; /* Some padding */
+            border: 1px solid #ccc; /* Gray border */
+            border-radius: 4px; /* Rounded borders */
+            box-sizing: border-box; /* Make sure that padding and width stays in place */
+            margin-top: 6px; /* Add a top margin */
+            margin-bottom: 16px; /* Bottom margin */
+            resize: vertical; /* Allow the user to vertically resize the textarea (not horizontally) */
+            background-color: #f9f9f9;
+        }
+
+        /* Style the submit button with a specific background color etc */
+        form input[type=submit] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* When moving the mouse over the submit button, add a darker green color */
+        form input[type=submit]:hover {
+            background-color: #45a049;
         }
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
@@ -283,14 +265,6 @@
 {% block content %}
     <article>
         <h2>Controls</h2>
-        {# <form class="control" action="{{ url_for('admin.admin_commands', command='reload_user') }}"
-              method="post">
-            <button type="submit" style="float: left">Reload User</button>
-        </form> #}
-        {# <form class="control" action="{{ url_for('admin.admin_commands', command='reload_config') }}"
-              method="post">
-            <button type="submit" style="float: left">Reload Config</button>
-        </form> #}
         <form class="control" action="{{ url_for('admin.admin_commands', command='toggle_camera') }}" method="post">
             <div style="float: left;" onclick="document.getElementById('cam1').click()">
                 <div style="vertical-align: text-top;border: none;">
@@ -315,39 +289,76 @@
                 </label>
             </div>
         </form>
+        <form class="control" action="{{ url_for('admin.admin_commands', command='restart') }}" method="post">
+            <button type="submit" style="float: left">Restart</button>
+        </form>
     </article>
     <article>
         <h2>Users</h2>
         <div id="tableContainer" class="tableContainer">
-            <table class="scrollTable" id="users"
-                    {#style="width: 100%;row-gap: 0;border: 0;border-collapse: collapse;border-spacing: 0;"#}>
-                <thead class="fixedHeader"
-                        {#style="position: relative;text-align: center;background-color: #a3a3a3;display: table"#}>
+            <table class="scrollTable" style="width: 70%;float: left" id="users">
+                <thead class="fixedHeader">
                 <tr style="height: 2.3em">
                     <th onclick="sortTable(0)" style="background-color: #a3a3a3">User</th>
-                    <th style="width: 74.6%;background-color: #a3a3a3">Permissions</th>
+                    <th style="background-color: #a3a3a3;width: calc(70% + 18px);">Email</th>
                     <th style="background-color: #a3a3a3"><i class="fas fa-trash-alt" style="visibility: hidden;"></i>
                     </th>
                 </tr>
                 </thead>
-                <tbody class="scrollContent" {#style="position: relative"#}>
+                <tbody class="scrollContent">
                 {% for user in users %}
-                    <tr style="height: 2.3em" {% if user.username != "admin" %}onclick="
-                            document.getElementById('username').value = '{{ user.username }}';
-                            document.getElementById('uname').innerText = '{{ user.username }}';
-                            document.getElementById('permissions').value = '{{ user.permissions }}';
-                            document.getElementById('popup').style.display = 'block';"{% endif %}>
+                    <tr style="height: 2.3em" {% if user.username != "admin" %}onclick='
+                            document.getElementById("username").value = "{{ user.username }}";
+                            document.getElementById("username-text").innerText = "{{ user.username }}";
+                            document.getElementById("first_name-text").innerText = "{{ user.first_name }}";
+                            document.getElementById("last_name-text").innerText = "{{ user.last_name }}";
+                            document.getElementById("email-text").innerText = "{{ user.email }}";
+                            $("#user-roles>tbody").html("{% for role in user.get_roles() -%}<tr><td>{{ role }}</td><td><form action=\"{{ url_for('admin.admin_commands', command='remove_user_role', param=[user.username, role]) }}\" method=\"post\"><button type=\"submit\"><i class=\"fas fa-trash-alt\"></i></button></form></td></tr>{% endfor -%}");
+                            document.getElementById("popup").style.display = "block";'{% endif %}>
                         <td>{{ user.username }}</td>
-                        <td>{{ user.permissions }}</td>
-                        <td>{% if user.username != "admin" %}
-                            <form action="{{ url_for('admin.admin_commands', param=(user.username|string)) }}"
+                        <td>{{ user.email }}</td>
+                        <td>
+                            <form {% if user.username != "admin" %}action="{{ url_for('admin.admin_commands', command='remove_user', param=(user.username|string)) }}"
+                                  {% else %}action="" style="visibility: hidden"{% endif %}
                                   method="post">
                                 <button type="submit"><i class="fas fa-trash-alt"></i></button>
-                            </form>{% endif %}</td>
+                            </form>
+                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
+            <table class="scrollTable" style="margin-left: 6%;width: 24%;float: left;" id="roles">
+                <thead class="fixedHeader">
+                <tr style="height: 2.3em">
+                    <th style="background-color: #a3a3a3">Roles</th>
+                    <th style="background-color: #a3a3a3"><i class="fas fa-trash-alt" style="visibility: hidden;"></i>
+                    </th>
+                </tr>
+                </thead>
+                <tbody class="scrollContent">
+                {% for role in roles %}
+                    <tr style="height: 2.3em">
+                        <td>{{ role }}</td>
+                        <td>
+                            <form {% if role != "admin" %}action="{{ url_for('admin.admin_commands', command='remove_role', param=(role|string)) }}"
+                                  {% else %}action="" style="visibility: hidden"{% endif %}
+                                  method="post">
+                                <button type="submit"><i class="fas fa-trash-alt"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <form style="width: 24%;float: left;margin-left: 6%;margin-top: 15px;"
+                  action="{{ url_for('admin.admin_commands', command='add_role') }}" method="post">
+                <label>
+                    <input type="text" style="height: 2em;width: 60%;float: left;margin: 0;" name="role"
+                           placeholder="Name"/>
+                </label>
+                <input type="submit" style="width: 40%;float: left;padding: 0;height: 2em;"/>
+            </form>
         </div>
     </article>
     <article style="padding: 10px;height: 50%">
@@ -356,25 +367,40 @@
     </article>
     <div id="popup" class="modal">
         <!-- Modal content -->
-        <div class="modal-content" style="width: 25%; height: 25%">
+        <div class="modal-content" style="width: 40%; height: 30%">
             <div class="modal-header">
                 <span class="close" onclick="document.getElementById('popup').style.display = 'none';">&times;</span>
             </div>
             <div class="modal-body" style="margin: 0 auto;height: 100%">
-                <form action="{{ url_for('admin.admin_commands', command='edit_user_permissions') }}" method="post"
-                      id="add_user">
-                    <p>
-                        <label for="username">Username: <span id="uname"></span></label><br/>
-                        <input id="username" type="text" name="username" hidden/>
-                    </p>
-                    <p>
-                        <label for="permissions">Permissions:</label><br/>
-                        <!--suppress CssInvalidPropertyValue -->
-                        <textarea id="permissions" name="permissions"
-                                  style="width: -webkit-fill-available; height: 115px"></textarea>
-                    </p>
-                    <button type="submit">EDIT</button>
+                <div>
+                    Username: <span id="username-text"></span><br/>
+                    First Name: <span id="first_name-text"></span><br/>
+                    Last Name: <span id="last_name-text"></span><br/>
+                    Email: <span id="email-text"></span>
+                </div>
+                <br/>
+                <!--suppress CssInvalidPropertyValue -->
+                <table class="scrollTable" id="user-roles" style="width: 50%; height: 115px">
+                    <thead class="fixedHeader">
+                    <tr>
+                        <th style="background-color: #a3a3a3;">Roles</th>
+                    </tr>
+                    </thead>
+                    <tbody class="scrollContent">
+
+                    </tbody>
+                </table>
+                <br/>
+                <form action="{{ url_for('admin.admin_commands', command='add_user_role') }}" method="post"
+                      id="add_user_role">
+                    <input type="hidden" id="username" name="username"/>
+                    <label>
+                        <input type="text" name="role" placeholder="Role"
+                               style="height: 2em;width: 40%;float: left;margin: 0;"/>
+                    </label>
+                    <input type="submit" style="width: 25%;float: left;padding: 0;height: 2em;"/>
                 </form>
+                <br/>
             </div>
         </div>
     </div>

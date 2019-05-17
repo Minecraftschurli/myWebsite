@@ -1,7 +1,9 @@
 import json
+import os
+import sys
 from os.path import getsize
 
-from flask import Blueprint, redirect, url_for, Response, escape
+from flask import Blueprint, redirect, Response, escape, url_for
 
 from . import configuration
 from .decorators import *
@@ -9,30 +11,28 @@ from .functions import *
 
 admin = Blueprint('admin', __name__)
 
+last_size = getsize(configuration['logfile'])
 
-@admin.route('/admin')
-@permission_required('all')
+
+@admin.route('/admin/dashboard')
+@roles_required('admin')
 @check_ip
 def admin_endpoint():
     users = User.query.all()
     users = [u for u in sorted(users, key=lambda x: x.username.lower())]
-    return render_with_nav('admin/admin', users=users, config=configuration)
+    return render_with_nav('admin/admin', users=users, roles=[r.name for r in Role.query.all()], config=configuration)
 
 
-@admin.route('/admin/<command>', methods=['POST', 'GET'])
-@admin.route('/admin/remove_user/<param>', methods=['POST', 'GET'])
-@permission_required(permission='all')
+def _restart():
+    os.execl(sys.executable, sys.executable, *sys.argv)
+
+
+@admin.route('/admin/command/<command>?<param>', methods=['POST'])
+@admin.route('/admin/command/<command>?', methods=['POST'])
+@roles_required('admin')
 @check_ip
-def admin_commands(command='remove_user', param=''):
+def admin_commands(command='', param=''):
     messages = []
-
-    def edit_user_permissions(_=None):
-        user = User.query.get(request.form['username'])
-        if 'username' in request.form and 'permissions' in request.form and user:
-            user.permissions = ', '.join(str(request.form['permissions']).splitlines())
-            db.session.commit()
-            messages.append(
-                {'type': 'success', 'text': 'Edited user permissions for user: ' + user.username, 'head': 'Success!'})
 
     def toggle_camera(_=None):
         configuration['camera']['status'] = (not configuration['camera']['status'])
@@ -45,36 +45,74 @@ def admin_commands(command='remove_user', param=''):
         messages.append({'type': 'success', 'text': 'Turned camera face detection ' + (
             'on' if configuration['camera']['use_detect'] else 'off') + '!', 'head': 'Success!'})
 
-    # def reload_config(_=None):
-    #     save_config()
-    #     load_config()
-    #     messages.append({'type': 'success', 'text': 'Reloaded config!', 'head': 'Success!'})
-
     def nothing(_=None):
         pass
 
     def _remove_user(user):
-        if remove_user(user):
-            messages.append({'type': 'success', 'text': 'removed user', 'head': 'Success!'})
+        db_manager = get_user_manager().db_manager
+        if not db_manager.delete_object(db_manager.find_user_by_username(user)):
+            messages.append({'type': 'success', 'text': 'Removed user!', 'head': 'Success!'})
+            db_manager.commit()
         else:
-            messages.append({'type': 'alert', 'text': 'removed user', 'head': 'Fail!'})
+            messages.append({'type': 'alert', 'text': 'Failed removing user!', 'head': 'Fail!'})
+
+    def restart(_=None):
+        from threading import Timer
+        t = Timer(10.0, _restart)
+        t.start()
+
+    def add_user_role(_=None):
+        db_manager = get_user_manager().db_manager
+        db_manager.add_user_role(User.query.filter_by(username=request.form.get('username')).first(),
+                                 request.form.get('role'))
+        db_manager.commit()
+        messages.append({'type': 'success', 'text': 'Added role to user!', 'head': 'Success!'})
+
+    def remove_user_role(userrole):
+        userrole = json.loads(str(userrole).replace('\'', '"'))
+        db_manager = get_user_manager().db_manager
+        role = Role.query.filter_by(name=userrole[1]).first()
+        user = db_manager.find_user_by_username(userrole[0])
+        if not user:
+            messages.append({'type': 'alert', 'text': 'User not found!', 'head': 'Error!'})
+            return
+        if not role:
+            messages.append({'type': 'alert', 'text': 'Role not found!', 'head': 'Error!'})
+            return
+        user_role = UserRoles.query.filter_by(user_id=user.id, role_id=role.id).first()
+        db_manager.delete_object(user_role)
+        db.session.commit()
+        messages.append({'type': 'success', 'text': 'Removed role from user!', 'head': 'Success!'})
+
+    def add_role(_=None):
+        db.session.add(Role(name=request.form.get('role')))
+        db.session.commit()
+        messages.append({'type': 'success', 'text': 'Created role!', 'head': 'Success!'})
+
+    def remove_role(role):
+        db_manager = get_user_manager().db_manager
+        if not db_manager.delete_object(Role.query.filter_by(name=role).first()):
+            messages.append({'type': 'success', 'text': 'Removed role!', 'head': 'Success!'})
+            db_manager.commit()
+        else:
+            messages.append({'type': 'alert', 'text': 'Failed removing role!', 'head': 'Fail!'})
 
     {
-        "edit_user_permissions": edit_user_permissions,
         "remove_user": _remove_user,
         "toggle_camera": toggle_camera,
         "toggle_detect": toggle_detect,
-        # "reload_config": reload_config
+        "restart": restart,
+        "add_user_role": add_user_role,
+        "remove_role": remove_role,
+        "add_role": add_role,
+        "remove_user_role": remove_user_role
     }.get(command, nothing)(param)
-    for m in messages:
-        m_type = m['type']
-        m.pop('type')
-        flash(m, m_type)
+    flash_messages(messages)
     return redirect(url_for('admin.admin_endpoint'))
 
 
 @admin.route('/admin/console')
-@permission_required('all')
+@roles_required('admin')
 @check_ip
 def console():
     global last_size, cur_size

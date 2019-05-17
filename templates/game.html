@@ -2,12 +2,11 @@
 {% block head %}
     <meta name="author" content="Georg Burkl">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../static/css/gamePage.css"/>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
     <script>
     $(document).ready(function () {
-        var game_frame = document.getElementById('game_frame');
-        var fsc = function (evt) {
+        let game_frame = document.getElementById('game_frame');
+        let fsc = function (evt) {
             game_frame.contentWindow.resizeProp()
         };
         /* Standard syntax */

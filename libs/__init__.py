@@ -2,22 +2,21 @@ import json
 import sys
 
 from flask import Flask
-from flask_bcrypt import Bcrypt
-from flask_login import LoginManager
+from flask_login import current_user
 from flask_sqlalchemy import SQLAlchemy
 
 from .logger import Logger
 
-bcrypt = Bcrypt()
-login_manager = LoginManager()
 db = SQLAlchemy()
 
 nav = list()
 configuration = dict()
 
+get_user_manager = None
+
 
 def create_app():
-    global configuration, nav, bcrypt, login_manager, db
+    global configuration, nav, db, user_manager, get_user_manager
 
     app = Flask(__name__, template_folder='../templates', static_folder='../static')
 
@@ -26,25 +25,40 @@ def create_app():
 
     app.secret_key = bytes(configuration['secret_key'], 'UTF-8')
 
-    app.config['USE_SESSION_FOR_NEXT'] = configuration['USE_SESSION_FOR_NEXT']
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = configuration['SQLALCHEMY_TRACK_MODIFICATIONS']
-    app.config['SQLALCHEMY_DATABASE_URI'] = configuration['SQLALCHEMY_DATABASE_URI']
+    for k, v in configuration['app_configurations'].items():
+        app.config[k] = v
 
-    bcrypt.init_app(app)
     db.init_app(app)
 
-    login_manager.login_view = 'auth.login'
-    login_manager.init_app(app)
+    # from . import databases
+    # db.create_all(app=app)
 
-    from .databases import User
+    from .databases import User, Role
+    from .customization import CustomUserManager
+    user_manager = CustomUserManager(app, db, User, RoleClass=Role)
+    app.user_manager = user_manager
 
-    @login_manager.user_loader
-    def user_for_name(name: str) -> User:
-        return User.query.get(name)
+    def _get_user_manager():
+        return user_manager
+
+    get_user_manager = _get_user_manager
+
+    # app.app_context().push()
+    # user = User.query.filter_by(email='minecraftschurli@gmail.com').first()
+    # user.roles.append(Role(name='admin'))
+    # db.session.commit()
+
+    # Create all database tables
+    # db.drop_all(app=app)
+    # db.create_all(app=app)
+
+    # @login_manager.user_loader
+    # def user_for_name(name: str) -> User:
+    #     return User.query.get(name)
 
     # blueprint for auth routes in our app
-    from .auth import auth as auth_blueprint
-    app.register_blueprint(auth_blueprint)
+    # from .auth import auth as auth_blueprint
+    # app.register_blueprint(auth_blueprint)
 
     # blueprint for games parts of app
     from .games import games as games_blueprint
@@ -71,6 +85,15 @@ def create_app():
     app.jinja_env.filters.update({
         'is_list': is_list
     })
+
+    from libs.functions import get_nav
+
+    def get_current_user():
+        return current_user
+
+    app.add_template_global(get_nav, name='get_nav')
+    app.add_template_global(isinstance, name='isinstance')
+    app.add_template_global(get_current_user, name='get_current_user')
 
     sys.stderr = Logger(sys.stderr)
     sys.stdout = Logger(sys.stdout)

@@ -662,17 +662,17 @@
 #         meinheld.run(app)
 #     else:
 #         app.run('0.0.0.0', 80, threaded=True, debug=True)
-import platform
-
-import libs
 
 if __name__ == '__main__':
     # main()
-    app = libs.create_app()
+    import platform
+    from libs import create_app
+
+    app = create_app()
     if platform.system() == 'Linux':
         import meinheld
 
         meinheld.listen(('0.0.0.0', 80))
         meinheld.run(app)
     else:
-        app.run('0.0.0.0', 80, threaded=True, debug=True)
+        app.run('0.0.0.0', 80, threaded=True)

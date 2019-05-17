@@ -23,7 +23,18 @@
             [
                 "ITBoy",
                 "/games/itboy",
-                "any",
+                [
+                    "school",
+                    "test"
+                ],
+                false
+            ],
+            [
+                "Countdown",
+                "/countdown",
+                [
+                    "test"
+                ],
                 false
             ],
             [
@@ -79,13 +90,13 @@
     [
         "Cam",
         "/cam",
-        "camera",
+        "home_view",
         false
     ],
     [
         "Admin",
-        "/admin",
-        "all",
+        "/admin/dashboard",
+        "admin",
         false
     ]
 ]

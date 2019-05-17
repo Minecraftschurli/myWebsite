@@ -27,8 +27,18 @@
 
         .notification.success, .notification.success * {background-color: #4CAF50;}
         .notification.info, .notification.info * {background-color: #2196F3;}
-        .notification.warning, .notification.warning * {background-color: #ff9800;}
-        .notification.alert, .notification.alert * {background-color: #f44336;}
+
+        .notification.warning, .notification.warning * {
+            background-color: #ffdc00;
+        }
+
+        .notification.alert, .notification.alert * {
+            background-color: #ff9800;
+        }
+
+        .notification.error, .notification.error * {
+            background-color: #f44336;
+        }
 
         .closebtn {
             margin-left: 15px;
@@ -51,40 +61,24 @@
 <div class="header">
     <h1>Minecraftschurli - {{ self.title() }}</h1>
 </div>
-<nav class="navbar">
-    {% for name, href, active, external in nav %}
-        {% if href|is_list() %}
-            <div class="dropdown">
-                <button class="dropbtn">{{ name }}
-                    <i class="fa fa-caret-down"></i>
-                </button>
-                <div class="dropdown-content">
-                    {% for n, h, e in href %}
-                        <a href="{{ h|e }}" {% if e %}target="_blank"{% endif %}>{{ n|safe }}</a>
-                    {% endfor %}
-                </div>
-            </div>
-        {% else %}
-            <a href="{{ href|e }}" {% if active %}class="active"{% endif %} {% if external %}target="_blank"{% endif %}
-               id="{{ name|e }}">{{ name|e }}</a>
-        {% endif %}
-    {% endfor %}
-</nav>
+{% block nav %}
+    {% from "flask_user/_macros.html" import render_nav %}
+    {{ render_nav(nav) }}
+{% endblock %}
 <div class="flexbox">
     <aside style="float: left">{% block aside_left %}{% endblock %}</aside>
-    <main>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    {% with message = message %}
-                        <div class="notification {{ category }}">
-                            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-                            <strong>{{ message['head'] }}</strong> {{ message['text'] }}
-                        </div>
-                    {% endwith %}
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+    <main>{% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <article>{% for category, message in messages %}
+                <div class="notification {{ category }}">
+                    <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                    {% if isinstance(message, dict) %}
+                        <strong>{{ message['head'] }}</strong> {{ message['text'] }}
+                    {% else %}
+                        {{ message|safe }}
+                    {% endif %}
+                </div>{% endfor %}
+            </article>{% endif %}{% endwith %}
         {% block content %}{% endblock %}
     </main>
     <aside style="float: left">{% block aside_right %}{% endblock %}</aside>

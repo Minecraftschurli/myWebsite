@@ -3,7 +3,7 @@ from urllib.parse import urlparse, urljoin
 from flask import request, render_template, flash
 from flask_login import current_user
 
-from . import nav, login_manager
+from . import nav
 from .databases import *
 
 
@@ -33,12 +33,17 @@ def get_nav(name):
                         projects_out.append((n1, d1, e1))
                 nav_out.append((n, projects_out, False, False))
             else:
-                nav_out.append((n, d, name == d, e))
+                if 'admin' in d:
+                    nav_out.append((n, d, name == '/admin' + d, e))
+                elif 'contact' in d and 'contact' in name:
+                    nav_out.append((n, d, True, e))
+                else:
+                    nav_out.append((n, d, name == d, e))
     if current_user.is_authenticated:
         nav_out.append(('Logout', '/logout', False, False))
+        nav_out.append(('Profile', '/profile', name == '/profile', False))
     else:
-        nav_out.append(('Login', '/login', False, False))
-
+        nav_out.append(('Login', '/login', name == '/login', False))
     return nav_out
 
 
@@ -47,43 +52,7 @@ def render_with_nav(name, **kwargs):
 
 
 def check_permission(permission):
-    return current_user.is_authenticated and current_user.has_permission(permission)
-
-
-def valid_login(name, password):
-    if valid_user(name):
-        return login_manager.user_callback(name).authenticate(password)
-    return False
-
-
-def add_user(fname, lname, name, password, email, permissions=None):
-    if permissions is None:
-        permissions = list()
-
-    if User.query.filter_by(email=email).first():
-        return False, 'email'
-    elif User.query.filter_by(username=name).first():
-        return False, 'username'
-
-    if email == (name + '@student.tgm.ac.at') and not ('school' in permissions):
-        permissions.append('school')
-    # noinspection PyArgumentList
-    new_user = User(first_name=fname, last_name=lname, username=name,
-                    password_hash=bcrypt.generate_password_hash(password).decode('utf-8'), email=email,
-                    permissions=', '.join(permissions))
-    # add the new user to the database
-    db.session.add(new_user)
-    db.session.commit()
-    return True, None
-
-
-def remove_user(name):
-    user = User.query.get(name)
-    if user:
-        db.session.delete(user)
-        db.session.commit()
-        return True
-    return False
+    return current_user.is_authenticated and current_user.has_role(permission)
 
 
 def valid_user(user):

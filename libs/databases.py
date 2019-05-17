@@ -1,47 +1,70 @@
-from flask_login import UserMixin
+from flask_user import UserMixin
 
-from . import db, bcrypt
+from . import db
 
 
-class User(UserMixin, db.Model):
+# Define the User data-model.
+# NB: Make sure to add flask_user UserMixin !!!
+class User(db.Model, UserMixin):
     __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    active = db.Column('is_active', db.Boolean(), nullable=False, server_default='1')
 
-    username = db.Column(db.String(100), primary_key=True)  # primary keys are required by SQLAlchemy
-    email = db.Column(db.String(100), unique=True, nullable=False)
-    last_name = db.Column(db.String(100), nullable=False)
-    first_name = db.Column(db.String(100), nullable=False)
-    permissions = db.Column(db.String(1000), nullable=False)
-    password_hash = db.Column(db.String(1000), nullable=False)
+    # User authentication information. The collation='NOCASE' is required
+    # to search case insensitively when USER_IFIND_MODE is 'nocase_collation'.
+    email = db.Column(db.String(255, collation='NOCASE'), nullable=False, unique=True)
+    email_confirmed_at = db.Column(db.DateTime())
+    password = db.Column(db.String(255), nullable=False, server_default='')
 
-    def get_id(self):
-        return self.username
+    # User information
+    username = db.Column(db.String(100), nullable=False, unique=True)
+    first_name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+    last_name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
 
-    def has_permission(self, permission):
+    # Define the relationship to Role via UserRoles
+    roles = db.relationship('Role', secondary='user_roles')
+
+    def has_role(self, permission):
+        roles = self.get_roles()
         if permission is "any":
             return True
-        permissions = self.permissions.split(', ')
-        if "all" in permissions:
+        if "admin" in roles:
             return True
         if isinstance(permission, list):
             for p in permission:
-                if p in permissions:
+                if p in roles:
                     return True
         else:
-            return permission in permissions
+            return permission in roles
         return False
 
-    def authenticate(self, password):
-        return bcrypt.check_password_hash(self.password_hash.encode('utf-8'), password)
+    def get_roles(self):
+        from . import get_user_manager
+        return get_user_manager().db_manager.get_user_roles(self)
 
     def to_dict(self):
         return {
             "first_name": self.first_name,
             "last_name": self.last_name,
             "username": self.username,
-            "password_hash": self.password_hash,
-            "email": self.email,
-            "permissions": self.permissions
+            "password": self.password,
+            "email": self.email
         }
+
+
+# Define the Role data-model
+class Role(db.Model):
+    __tablename__ = 'roles'
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(50), unique=True)
+
+
+# Define the UserRoles association table
+class UserRoles(db.Model):
+    __tablename__ = 'user_roles'
+    id = db.Column(db.Integer(), primary_key=True)
+    user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE'))
+    role_id = db.Column(db.Integer(), db.ForeignKey('roles.id', ondelete='CASCADE'))
 
 
 class IPBlacklist(db.Model):

@@ -59,6 +59,29 @@
     </script>
 
     <style>
+        .scrollTable td:nth-child(1), .scrollTable th:nth-child(1) {
+            width: 13%
+        }
+
+        .scrollTable td:nth-child(2), .scrollTable th:nth-child(2) {
+            width: 13%;
+            border-left: solid;
+        }
+
+        .scrollTable td:nth-child(3), .scrollTable th:nth-child(3) {
+            width: 26%;
+            border-left: solid;
+        }
+
+        .scrollTable td:nth-child(4), .scrollTable th:nth-child(4) {
+            width: 45%;
+            border-left: solid;
+        }
+
+        .scrollTable td:nth-child(5), .scrollTable th:nth-child(5) {
+            width: 3%
+        }
+
         table {
             border-collapse: collapse;
             border-spacing: 0;
@@ -75,27 +98,51 @@
             cursor: pointer;
         }
 
-        tr:nth-child(odd), tr:nth-child(odd) * {
-            background-color: #a3a3a3
+        /* Style inputs with type="text", select elements and textareas */
+        form input[type=text], form input[type=email], form input[type=password], form textarea {
+            width: 100%; /* Full width */
+            padding: 12px; /* Some padding */
+            border: 1px solid #ccc; /* Gray border */
+            border-radius: 4px; /* Rounded borders */
+            box-sizing: border-box; /* Make sure that padding and width stays in place */
+            margin-top: 6px; /* Add a top margin */
+            margin-bottom: 16px; /* Bottom margin */
+            resize: vertical; /* Allow the user to vertically resize the textarea (not horizontally) */
+            background-color: #f9f9f9;
         }
 
-        tr:nth-child(even), tr:nth-child(even) * {
-            background-color: #f2f2f2
+        /* Style the submit button with a specific background color etc */
+        form input[type=submit] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* When moving the mouse over the submit button, add a darker green color */
+        form input[type=submit]:hover {
+            background-color: #45a049;
         }
     </style>
 {% endblock %}
 {% block content %}
     <article>
         <h2>Contact Requests</h2>
-        <table id="msgs">
-            <tbody>
+        <table class="scrollTable" id="msgs">
+            <thead class="fixedHeader">
             <tr>
-                <th onclick="sortTable(0)">First Name</th>
-                <th onclick="sortTable(1)">Last Name</th>
-                <th onclick="sortTable(2)">Email</th>
-                <th onclick="sortTable(3)">Subject</th>
-                <th></th>
+                <th onclick="sortTable(0)" style="background-color: #a3a3a3;text-align: center;">First Name</th>
+                <th onclick="sortTable(1)" style="background-color: #a3a3a3;text-align: center;">Last Name</th>
+                <th onclick="sortTable(2)" style="background-color: #a3a3a3;text-align: center;">Email</th>
+                <th onclick="sortTable(3)"
+                    style="background-color: #a3a3a3;text-align: center;width: calc(45% + 18px);">Subject
+                </th>
+                <th style="background-color: #a3a3a3;text-align: center;"></th>
             </tr>
+            </thead>
+            <tbody class="scrollContent">
             {% for msg in contact %}
                 <tr onclick="document.getElementById('popup{{ msg.id }}').style.display = 'block'">
                     <td>{{ msg.first_name }}</td>
@@ -115,8 +162,8 @@
                 <!-- Modal content -->
                 <div class="modal-content">
                     <div class="modal-header">
-                        <span class="close"
-                              onclick="document.getElementById('popup{{ msg.id }}').style.display = 'none';">&times;</span>
+                    <span class="close"
+                          onclick="document.getElementById('popup{{ msg.id }}').style.display = 'none';">&times;</span>
                         <h2>{{ msg.subject }}</h2>
                     </div>
                     <div class="modal-body">

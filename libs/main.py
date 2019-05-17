@@ -3,6 +3,7 @@ from datetime import datetime
 
 import requests
 from flask import Blueprint, redirect, jsonify
+from flask_user import roles_accepted
 
 from libs import admin, configuration
 from . import adresslistenGenerator
@@ -22,7 +23,7 @@ def index():
 
 
 @main.route('/adr_gen', methods=['POST', 'GET'])
-@permission_required('school')
+@roles_accepted('school', 'admin')
 @check_ip
 def adr_gen():
     ta = ["", ""]
@@ -65,6 +66,7 @@ def sx():
 
 
 @main.route('/countdown')
+@roles_accepted('test', 'admin')
 @check_ip
 def countdown():
     return render_with_nav('countdown')
@@ -87,8 +89,7 @@ def contact(remove=-1):
             }
             if check_permission('any'):
                 user = current_user.to_dict()
-                user.pop('password_hash')
-                user.pop('permissions')
+                user.pop('password')
                 user.pop('username')
                 data.update(user)
             else:
@@ -124,7 +125,7 @@ def get_contact_msgs():
 
 
 @main.route('/webspace')
-@permission_required('school')
+@roles_accepted('school', 'admin')
 @check_ip
 def webspace():
     return redirect('https://projekte.tgm.ac.at/2dhit/gburkl/')
@@ -151,6 +152,7 @@ def twitter():
 @main.route('/<name>')
 @check_ip
 def where(name):
+    print(name)
     if name in routes:
         return render_with_nav(name)
     elif any(x in name for x in ['xml', 'php', 'security', 'robots']):

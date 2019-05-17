@@ -4,7 +4,7 @@ from cv2 import cv2
 
 COLOR = {'WHITE': [255, 255, 255], 'BLUE': [255, 0, 0], 'GREEN': [0, 255, 0], 'RED': [0, 0, 255], 'BLACK': [0, 0, 0]}
 
-if platform.system() is 'Linux':
+if platform.system() == 'Linux':
     directory = "/home/pi/webapp/libs"
 else:
     directory = "C:/Users/georg/PycharmProjects/website/libs"

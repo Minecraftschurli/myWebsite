@@ -19,6 +19,7 @@ def shootit():
 
 
 @games.route('/games/itboy')
+@roles_accepted('school', 'admin', 'test')
 @check_ip
 def itboy():
     return render_with_nav('game', game_name='ITBoy', game_src='../static/games/itboy/ITBoy.html',

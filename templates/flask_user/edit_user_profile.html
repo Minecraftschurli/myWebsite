@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}User profile{% endblock %}
+{% block nav %}
+    {% from "flask_user/_macros.html" import render_nav %}
+    {{ render_nav(get_nav('profile')) }}
+{% endblock %}
+{% block content %}
+    {% from "flask_user/_macros.html" import render_field, render_checkbox_field, render_submit_field %}
+    <article>
+        {% set user = get_current_user() %}
+        <h2>User profile</h2>
+        <table>
+            <tbody>
+            <tr>
+                <td>Username:</td>
+                <td>{{ user.username }}</td>
+            </tr>
+            <tr>
+                <td>First Name:</td>
+                <td>{{ user.first_name }}</td>
+            </tr>
+            <tr>
+                <td>Last Name:</td>
+                <td>{{ user.last_name }}</td>
+            </tr>
+            <tr>
+                <td>Email:</td>
+                <td>{{ user.email }}</td>
+            </tr>
+            </tbody>
+        </table>
+
+        {#<form action="" method="POST" class="form" role="form">
+            {{ form.hidden_tag() }}
+            {% for field in form %}
+                {% if not field.flags.hidden %}
+                    {% if field.type=='SubmitField' %}
+                        {{ render_submit_field(field, tabindex=loop.index*10) }}
+                    {% else %}
+                        {{ render_field(field, tabindex=loop.index*10) }}
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        </form>#}
+        <br/>
+
+        {% if not user_manager.USER_ENABLE_AUTH0 %}
+            {% if user_manager.USER_ENABLE_CHANGE_USERNAME %}
+                <p><a href="{{ url_for('user.change_username') }}">{% trans %}Change username{% endtrans %}</a></p>
+            {% endif %}
+            {% if user_manager.USER_ENABLE_CHANGE_PASSWORD %}
+                <p><a href="{{ url_for('user.change_password') }}">{% trans %}Change password{% endtrans %}</a></p>
+            {% endif %}
+        {% endif %}
+    </article>
+{% endblock %}

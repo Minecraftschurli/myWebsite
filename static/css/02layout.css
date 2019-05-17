@@ -22,7 +22,8 @@ aside {
 }
 
 main {
-    overflow-y: scroll;
+    overflow-y: auto;
+    overflow-x: hidden;
     width: 60%;
     height: 100%;
     position: relative;
@@ -30,8 +31,9 @@ main {
     min-width: 700px;
 }
 
-main > article {
-    padding: 10px;
+main article {
+    width: calc(100% - 40px);
+    padding: 20px;
 }
 
 body > footer {
@@ -76,16 +78,23 @@ body > footer {
     height: 100%;
 }
 
-#Logout, #Login{
+#Logout, #Login, #Profile {
     float: right;
 }
 
 #bio {
-    margin-left: 10%;
+    padding-left: 5%;
+    padding-right: 5%;
     font-size: larger;
+    width: calc(100% - 10%);
 }
 
 .responsive {
     height: auto;
     width: 100%;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: red;
 }

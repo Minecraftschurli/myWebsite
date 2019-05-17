@@ -49,7 +49,7 @@ class VideoCamera(object):
 
 
 @camera.route('/cam')
-@permission_required('camera')
+@roles_accepted('home_view', 'admin')
 @check_ip
 def cam():
     if configuration['camera']['status']:
@@ -59,7 +59,7 @@ def cam():
 
 
 @camera.route('/video_feed/<cam_id>')
-@permission_required('camera')
+@roles_accepted('home_view', 'admin')
 @check_ip
 def video_feed(cam_id='0'):
     if (not configuration['camera']['status']) or (not cam_id.isnumeric()) or (int(cam_id) not in cams):
